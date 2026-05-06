@@ -1711,13 +1711,21 @@ export default function App() {
 
   // Biometric Lock Check
   useEffect(() => {
-    if (data.loaded && data.profile?.biometricEnabled) {
-      setIsLocked(true);
-      authenticateBiometric().then(success => {
-        if (success) setIsLocked(false);
-      });
+    async function checkLock() {
+      if (data.loaded && data.profile?.biometricEnabled) {
+        console.log('App is locked, requesting biometric authentication...');
+        setIsLocked(true);
+        const success = await authenticateBiometric();
+        if (success) {
+          console.log('Authentication successful, unlocking app.');
+          setIsLocked(false);
+        } else {
+          console.log('Authentication failed, app remains locked.');
+        }
+      }
     }
-  }, [data.loaded, data.profile?.biometricEnabled]);
+    checkLock();
+  }, [data.loaded, !!data.profile?.biometricEnabled]);
 
 
   // Schedule notifications whenever profile loads or changes
