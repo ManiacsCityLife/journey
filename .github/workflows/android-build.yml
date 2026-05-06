@@ -1,0 +1,62 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Build web assets
+        run: npm run build
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Capacitor Add Android
+        run: npx cap add android || true
+
+      - name: Copy Icons
+        run: |
+          cp -r android-icons/mipmap-mdpi/* android/app/src/main/res/mipmap-mdpi/ || true
+          cp -r android-icons/mipmap-hdpi/* android/app/src/main/res/mipmap-hdpi/ || true
+          cp -r android-icons/mipmap-xhdpi/* android/app/src/main/res/mipmap-xhdpi/ || true
+          cp -r android-icons/mipmap-xxhdpi/* android/app/src/main/res/mipmap-xxhdpi/ || true
+          cp -r android-icons/mipmap-xxxhdpi/* android/app/src/main/res/mipmap-xxxhdpi/ || true
+          cp -r android-icons/mipmap-anydpi-v26/* android/app/src/main/res/mipmap-anydpi-v26/ || true
+          cp -r android-icons/values/* android/app/src/main/res/values/ || true
+
+      - name: Remove invalid icon filenames
+        run: find android/app/src/main/res -name "icon-only.png" -delete
+
+      - name: Build APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: JourneyForward-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
