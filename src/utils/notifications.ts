@@ -1,0 +1,228 @@
+import type { UserProfile } from '../types';
+
+// ── Notification IDs ────────────────────────────────────────────────────────
+// 1    = morning motivation
+// 2    = evening motivation
+// 3    = morning reminder
+// 4    = evening reminder
+// 500+ = time milestones  (500 + days, e.g. 507 = 7-day)
+// 600+ = savings milestones (600 + tier index, e.g. 600 = R50, 607 = R10000)
+
+const MILESTONE_DAYS = [1, 7, 14, 30, 60, 90, 180, 365, 730, 1095];
+const SAVINGS_TIERS  = [50, 100, 250, 500, 1000, 2500, 5000, 10000];
+
+const REMINDER_MORNING = [
+  "Start your day strong 💪 — Check in and complete your missions.",
+  "Good morning! Your streak is worth protecting today. 🌅",
+  "One day at a time. You've got this — check in now. ✨",
+  "Morning check-in time 🌿 — Log your mood and set your intentions.",
+  "Your sober journey continues today. Open the app and check in. 🏃",
+];
+
+const REMINDER_EVENING = [
+  "You've made it through another day 🌟 — Log your progress.",
+  "Evening check-in 🌙 — How did your day go? Log it and reflect.",
+  "Don't forget to log today before it slips away. 📝",
+  "Great job today 💚 — Take a moment to reflect and log your day.",
+  "Your streak is still going strong 🔥 — Log tonight before you sleep.",
+];
+
+const MILESTONE_MESSAGES: Record<number, string> = {
+  1:    "🏆 1 Day Sober! The hardest step is the first. You did it.",
+  7:    "🏆 7 Days Sober! One full week clean — that's real strength.",
+  14:   "🏆 14 Days Sober! Two weeks. Your body is already healing.",
+  30:   "🏆 30 Days Sober! One month — you're building something real.",
+  60:   "🏆 60 Days Sober! Two months of fighting and winning.",
+  90:   "🏆 90 Days Sober! Three months. This is who you are now.",
+  180:  "🏆 180 Days Sober! Half a year. Unbelievable progress.",
+  365:  "🏆 1 Year Sober! 365 days. You are an inspiration. 🎉",
+  730:  "🏆 2 Years Sober! Two years of choosing yourself every single day.",
+  1095: "🏆 3 Years Sober! Three years. You've transformed your life. 🌟",
+};
+
+function savingsMessage(amount: number, currency: string): string {
+  const fmt = `${currency}${amount.toLocaleString()}`;
+  const messages: Record<number, string> = {
+    50:    `💰 You've saved your first ${fmt} — real money back in your pocket.`,
+    100:   `💰 ${fmt} saved! What will you spend it on instead of drinks?`,
+    250:   `💰 ${fmt} saved — a weekend away is within reach.`,
+    500:   `💰 ${fmt} saved! Half a thousand. That used to go on alcohol.`,
+    1000:  `💰 ${fmt} saved — four figures. Sobriety is literally paying off.`,
+    2500:  `💰 ${fmt} saved — you're building real financial freedom.`,
+    5000:  `💰 ${fmt} saved! This is life-changing money. Well done.`,
+    10000: `💰 ${fmt} saved — ten thousand reasons sobriety was the right choice. 🎉`,
+  };
+  return messages[amount] || `💰 ${fmt} saved through sobriety. Keep going!`;
+}
+
+function parseTime(timeStr: string): { hour: number; minute: number } {
+  const parts = (timeStr || '08:00').split(':').map(Number);
+  const h = parts[0] ?? 8;
+  const m = parts[1] ?? 0;
+  return { hour: isNaN(h) ? 8 : h, minute: isNaN(m) ? 0 : m };
+}
+
+function pick<T>(arr: T[]): T {
+  if (!arr.length) return '' as unknown as T;
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function pickDifferent<T>(arr: T[], exclude: T): T {
+  const filtered = arr.filter(x => x !== exclude);
+  return pick(filtered.length > 0 ? filtered : arr);
+}
+
+export async function requestPermission(): Promise<boolean> {
+  try {
+    const { LocalNotifications } = await import('@capacitor/local-notifications');
+    const { display } = await LocalNotifications.requestPermissions();
+    return display === 'granted';
+  } catch {
+    return false;
+  }
+}
+
+export async function scheduleAll(profile: UserProfile, motivations: string[]): Promise<void> {
+  try {
+    const { LocalNotifications } = await import('@capacitor/local-notifications');
+    const settings = profile.notificationSettings;
+    if (!settings) return;
+
+    // Cancel all existing scheduled (IDs 1–4)
+    await LocalNotifications.cancel({ notifications: [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }] });
+
+    const notifications: any[] = [];
+
+    const morning = parseTime(settings.morningTime || '08:00');
+    const evening = parseTime(settings.eveningTime || '19:00');
+
+    // ── Motivations ──
+    if (settings.motivations && motivations.length > 0) {
+      const morningMot = pick(motivations);
+      const eveningMot = pickDifferent(motivations, morningMot);
+
+      notifications.push({
+        id: 1,
+        title: 'Good morning 🌅',
+        body: morningMot,
+        schedule: { on: { hour: morning.hour, minute: morning.minute }, repeats: true, every: 'day' },
+        smallIcon: 'ic_stat_icon',
+        channelId: 'journey',
+      });
+      notifications.push({
+        id: 2,
+        title: 'Evening reminder 🌙',
+        body: eveningMot,
+        schedule: { on: { hour: evening.hour, minute: evening.minute }, repeats: true, every: 'day' },
+        smallIcon: 'ic_stat_icon',
+        channelId: 'journey',
+      });
+    }
+
+    // ── Reminders ──
+    if (settings.reminders) {
+      notifications.push({
+        id: 3,
+        title: 'Journey Forward',
+        body: pick(REMINDER_MORNING),
+        schedule: { on: { hour: morning.hour, minute: morning.minute }, repeats: true, every: 'day' },
+        smallIcon: 'ic_stat_icon',
+        channelId: 'journey',
+      });
+      notifications.push({
+        id: 4,
+        title: 'Journey Forward',
+        body: pick(REMINDER_EVENING),
+        schedule: { on: { hour: evening.hour, minute: evening.minute }, repeats: true, every: 'day' },
+        smallIcon: 'ic_stat_icon',
+        channelId: 'journey',
+      });
+    }
+
+    if (notifications.length > 0) {
+      // Ensure channel exists on Android
+      await LocalNotifications.createChannel({
+        id: 'journey',
+        name: 'Journey Forward',
+        importance: 3,
+        visibility: 1,
+        sound: 'default',
+        vibration: true,
+      });
+      await LocalNotifications.schedule({ notifications });
+    }
+  } catch (e) {
+    console.warn('Notification scheduling failed:', e);
+  }
+}
+
+export async function fireMilestone(days: number): Promise<void> {
+  if (!MILESTONE_DAYS.includes(days)) return;
+  const msg = MILESTONE_MESSAGES[days];
+  if (!msg) return;
+
+  try {
+    const { LocalNotifications } = await import('@capacitor/local-notifications');
+    await LocalNotifications.createChannel({
+      id: 'journey',
+      name: 'Journey Forward',
+      importance: 4,
+      visibility: 1,
+      sound: 'default',
+      vibration: true,
+    });
+    await LocalNotifications.schedule({
+      notifications: [{
+        id: 500 + days,
+        title: '🏆 Milestone Reached!',
+        body: msg,
+        schedule: { at: new Date(Date.now() + 1000) },
+        smallIcon: 'ic_stat_icon',
+        channelId: 'journey',
+      }],
+    });
+  } catch (e) {
+    console.warn('Milestone notification failed:', e);
+  }
+}
+
+export async function fireSavingsMilestone(tier: number, currency: string): Promise<void> {
+  if (!SAVINGS_TIERS.includes(tier)) return;
+  const tierIndex = SAVINGS_TIERS.indexOf(tier);
+
+  try {
+    const { LocalNotifications } = await import('@capacitor/local-notifications');
+    await LocalNotifications.createChannel({
+      id: 'journey',
+      name: 'Journey Forward',
+      importance: 4,
+      visibility: 1,
+      sound: 'default',
+      vibration: true,
+    });
+    await LocalNotifications.schedule({
+      notifications: [{
+        id: 600 + tierIndex,
+        title: '💰 Savings Milestone!',
+        body: savingsMessage(tier, currency),
+        schedule: { at: new Date(Date.now() + 1500) },
+        smallIcon: 'ic_stat_icon',
+        channelId: 'journey',
+      }],
+    });
+  } catch (e) {
+    console.warn('Savings milestone notification failed:', e);
+  }
+}
+
+export async function cancelAll(): Promise<void> {
+  try {
+    const { LocalNotifications } = await import('@capacitor/local-notifications');
+    const ids = [
+      1, 2, 3, 4,
+      ...MILESTONE_DAYS.map(d => 500 + d),
+      ...SAVINGS_TIERS.map((_, i) => 600 + i),
+    ].map(id => ({ id }));
+    await LocalNotifications.cancel({ notifications: ids });
+  } catch {}
+}

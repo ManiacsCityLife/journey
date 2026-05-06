@@ -1,0 +1,1 @@
+@tailwind base;@tailwind components;@tailwind utilities;@layer base{html,body{background-color:#020617;color:#fff;font-family:DM Sans,sans-serif;overscroll-behavior:none;-webkit-overflow-scrolling:touch}input[type=date]::-webkit-calendar-picker-indicator{filter:invert(1);opacity:.5}::-webkit-scrollbar{width:0}.font-display{font-family:Playfair Display,serif}}

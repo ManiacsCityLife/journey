@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+.gradle/
+capacitor-cordova-android-plugins/
+
+# Build outputs
+dist/
+android/app/build/
+android/build/
+*.apk
+*.bundle
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment variables / Secrets
+.env
+local.properties
+google-services.json
