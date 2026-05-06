@@ -11,6 +11,7 @@ export interface UserProfile {
   savingsGoal?: number;
   savingsGoalName?: string;
   weeklyGoals?: string[];
+  biometricEnabled?: boolean;
   notificationSettings?: {
     motivations: boolean;
     reminders: boolean;

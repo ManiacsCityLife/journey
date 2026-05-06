@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAppData } from './hooks/useAppData';
 import { startListening, stopListening } from './utils/speech';
 import { scheduleAll, fireMilestone, fireSavingsMilestone, requestPermission } from './utils/notifications';
+import { isBiometricAvailable, authenticateBiometric } from './utils/biometric';
 import SoberBuddyChat from './components/SoberBuddyChat';
 import EmergencyKit from './components/EmergencyKit';
 import Heatmap from './components/Heatmap';
@@ -1442,8 +1443,30 @@ function ProfileScreen({ data, onNavigate }: { data: ReturnType<typeof useAppDat
               <WeeklyGoalAdder onAdd={(g: string) => setProfile({...profile, weeklyGoals: [...(profile.weeklyGoals||[]), g]})} />
             </div>
 
-            {/* ── Notifications ── */}
+            {/* ── Security ── */}
             <div>
+              <p className="text-gray-500 text-xs font-medium mb-3 uppercase tracking-wider">Security</p>
+              <div className="flex items-center justify-between py-3 border-b border-gray-100">
+                <div>
+                  <p className="text-gray-800 text-sm font-medium">Biometric Unlock</p>
+                  <p className="text-gray-400 text-xs">Require Fingerprint/Face ID to open app</p>
+                </div>
+                <button onClick={async () => {
+                  const enabled = !profile.biometricEnabled;
+                  if (enabled) {
+                    const success = await authenticateBiometric('Enable biometric unlock');
+                    if (!success) return;
+                  }
+                  setProfile({...profile, biometricEnabled: enabled});
+                }}
+                  className={`w-12 h-6 rounded-full transition-colors ${profile.biometricEnabled ? 'bg-teal-500' : 'bg-gray-200'} flex items-center px-1`}>
+                  <div className={`w-4 h-4 bg-white rounded-full shadow transition-transform ${profile.biometricEnabled ? 'translate-x-6' : 'translate-x-0'}`}/>
+                </button>
+              </div>
+            </div>
+
+            {/* ── Notifications ── */}
+            <div className="mt-6">
               <p className="text-gray-500 text-xs font-medium mb-3 uppercase tracking-wider">Push Notifications</p>
 
               {/* Motivations toggle */}
@@ -1684,6 +1707,17 @@ export default function App() {
   const data = useAppData();
   const [screen, setScreen] = useState<Screen>('home');
   const [subScreen, setSubScreen] = useState<string>('');
+  const [isLocked, setIsLocked] = useState(false);
+
+  // Biometric Lock Check
+  useEffect(() => {
+    if (data.loaded && data.profile?.biometricEnabled) {
+      setIsLocked(true);
+      authenticateBiometric().then(success => {
+        if (success) setIsLocked(false);
+      });
+    }
+  }, [data.loaded, data.profile?.biometricEnabled]);
 
 
   // Schedule notifications whenever profile loads or changes
@@ -1753,6 +1787,20 @@ export default function App() {
   if (!data.loaded) return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center">
       <div className="text-center"><div className="text-4xl mb-3">🌱</div><div className="text-slate-400 text-sm">Loading your journey...</div></div>
+    </div>
+  );
+
+  if (isLocked) return (
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center px-6">
+      <div className="w-16 h-16 rounded-full bg-teal-100 flex items-center justify-center text-3xl mb-6">🔒</div>
+      <h1 className="text-xl font-bold text-slate-800 mb-2">App Locked</h1>
+      <p className="text-slate-500 text-center text-sm mb-8">Please authenticate to access your journey.</p>
+      <button onClick={async () => {
+        const success = await authenticateBiometric();
+        if (success) setIsLocked(false);
+      }} className="w-full py-4 rounded-2xl bg-teal-600 text-white font-bold text-base shadow-sm">
+        Unlock with Biometrics
+      </button>
     </div>
   );
 
