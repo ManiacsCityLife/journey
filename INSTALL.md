@@ -32,3 +32,14 @@ copy "app\build\outputs\apk\debug\app-debug.apk" "$env:USERPROFILE\Desktop\Journ
 - ALWAYS use `npx cap add android` — never `npx cap sync`
 - Re-copy all icon folders after every `cap add` (they get reset)
 - After installing APK, go to Profile → Edit Details to set your sobriety start date
+
+## Privacy Architecture
+
+This app is fully offline and privacy-first. No data ever leaves the device.
+
+- **No external AI calls** — SoberBuddyChat uses a 1,000-response scripted engine with on-device keyword detection. Zero network requests.
+- **No analytics** — Google Analytics has been removed entirely.
+- **No external fonts** — Google Fonts removed; Inter is served from the system font stack.
+- **No API keys required** — `@google/genai` dependency removed. No `.env` file needed.
+- **No Firebase / Google Services** — `google-services.json` is not used; the plugin hook has been removed from `android/app/build.gradle`.
+- **All user data** (journal entries, mood logs, chat history, milestones) is stored exclusively in `@capacitor/preferences` on the local device.

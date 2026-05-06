@@ -150,7 +150,7 @@ export default function BackupScreen({ onBack, onRestored }: BackupScreenProps) 
             </div>
             <div>
               <div className="text-slate-800 font-semibold text-sm">Export Backup</div>
-              <div className="text-slate-400 text-xs mt-0.5">Opens share sheet — save to Google Drive, email, WhatsApp, or Files app</div>
+              <div className="text-slate-400 text-xs mt-0.5">Opens share sheet — save to your Files app, email, WhatsApp, or any local storage</div>
             </div>
           </div>
           <button onClick={handleExport} disabled={loading}
