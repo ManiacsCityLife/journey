@@ -1,5 +1,5 @@
 // Generates shareable milestone card images using HTML Canvas
-// Returns a base64 PNG that can be shared via Web Share API or saved
+// Returns a base64 PNG that can be shared via Web Share interface or saved
 
 const MILESTONES: Record<number, { label: string; benefit: string; emoji: string }> = {
   1:   { label: '1 Day Sober',    benefit: 'Blood alcohol cleared',          emoji: '🌱' },

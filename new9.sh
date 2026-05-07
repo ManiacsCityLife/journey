@@ -1,2 +1,0 @@
-sh
-git commit -m "Initial commit"

@@ -5,7 +5,6 @@ ext {
 
 buildscript {
     repositories {
-        google()
         mavenCentral()
     }
     dependencies {
@@ -34,7 +33,6 @@ android {
 }
 
 repositories {
-    google()
     mavenCentral()
     flatDir{
         dirs 'src/main/libs', 'libs'

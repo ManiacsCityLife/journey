@@ -24,17 +24,19 @@ export function useAppData() {
 
   useEffect(() => { loadAll(); }, []);
 
-  function loadAll() {
+  async function loadAll() {
     try {
-      const p = storageGet('profile');
-      const j = storageGet('journal');
-      const c = storageGet('cravings');
-      const s = storageGet('sleep');
-      const t = storageGet('thoughts');
-      const a = storageGet('activities');
-      const d = storageGet('completedDays');
-      const r = storageGet('reasons');
-      const g = storageGet('gratitude');
+      const [p, j, c, s, t, a, d, r, g] = await Promise.all([
+        storageGet('profile'),
+        storageGet('journal'),
+        storageGet('cravings'),
+        storageGet('sleep'),
+        storageGet('thoughts'),
+        storageGet('activities'),
+        storageGet('completedDays'),
+        storageGet('reasons'),
+        storageGet('gratitude')
+      ]);
 
       if (p) setProfileState(JSON.parse(p));
       if (j) setJournal(JSON.parse(j));
@@ -138,8 +140,12 @@ export function useAppData() {
       const next = gratitudeRef.current.filter(x => x.id !== id);
       gratitudeRef.current = next; setGratitude(next);
       storageSet('gratitude', JSON.stringify(next));
+    } else if (type === 'journal') {
+      const next = journal.filter(x => x.id !== id);
+      setJournal(next);
+      storageSet('journal', JSON.stringify(next));
     }
-  }, []);
+  }, [journal]);
 
   const getSoberStats = useCallback(() => {
     if (!profile?.soberDate) return null;

@@ -1,4 +1,4 @@
-// Speech Recognition utility: Capacitor plugin first, Web Speech API fallback
+// Speech Recognition utility: Capacitor plugin first, Web Speech interface fallback
 
 let webRecognition: any = null;
 let capacitorOnEndCallback: (() => void) | null = null;

@@ -1,4 +1,4 @@
-// Procedural ambient audio — no MP3 files needed, generated via Web Audio API
+// Procedural ambient audio — no MP3 files needed, generated via Web Audio interface
 
 let ctx: AudioContext | null = null;
 let masterGain: GainNode | null = null;

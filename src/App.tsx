@@ -1115,8 +1115,8 @@ function HomeScreen({ data, onNavigate }: { data: ReturnType<typeof useAppData>;
           </div>
         ) : (
           <div className="space-y-2">
-            {gratitudeToday && (
-              <div className="text-slate-400 text-xs italic mb-1">Yesterday: "{data.gratitude.find(g=>g.date===new Date(Date.now()-86400000).toISOString().split('T')[0])?.text || gratitudeToday.text}"</div>
+            {data.gratitude.find(g=>g.date===new Date(Date.now()-86400000).toISOString().split('T')[0]) && (
+              <div className="text-slate-400 text-xs italic mb-1">Yesterday: "{data.gratitude.find(g=>g.date===new Date(Date.now()-86400000).toISOString().split('T')[0])?.text}"</div>
             )}
             <div className="flex gap-2">
               <input value={gratitudeText} onChange={e=>setGratitudeText(e.target.value)}

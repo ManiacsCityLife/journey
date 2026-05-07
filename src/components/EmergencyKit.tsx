@@ -4,7 +4,6 @@ import { speak, stopSpeaking } from '../utils/tts';
 import { startAmbient, stopAmbient, type AmbientType } from '../utils/ambient';
 import SoberBuddyChat from './SoberBuddyChat';
 import { IconPhone, IconWind, IconLeaf, IconBrain, IconHeart, IconPuzzle, IconBody, IconTimer, IconProgress } from './Icons';
-import { IconWind, IconLeaf, IconBrain, IconPhone, IconHeart, IconPuzzle, IconBody, IconTimer, IconProgress } from './Icons';
 
 interface EmergencyKitProps {
   profile: UserProfile | null;

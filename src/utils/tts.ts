@@ -1,4 +1,4 @@
-// TTS utility: tries Capacitor TextToSpeech plugin first, falls back to Web Speech API
+// TTS utility: tries Capacitor TextToSpeech plugin first, falls back to Web Speech interface
 
 export async function speak(text: string, rate = 0.82, pitch = 0.9): Promise<void> {
   try {
