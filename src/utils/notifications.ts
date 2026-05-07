@@ -151,9 +151,7 @@ export async function scheduleAll(profile: UserProfile, motivations: string[]): 
       });
       await LocalNotifications.schedule({ notifications });
     }
-  } catch (e) {
-    console.warn('Notification scheduling failed:', e);
-  }
+  } catch (e) {}
 }
 
 export async function fireMilestone(days: number): Promise<void> {
@@ -181,9 +179,7 @@ export async function fireMilestone(days: number): Promise<void> {
         channelId: 'journey',
       }],
     });
-  } catch (e) {
-    console.warn('Milestone notification failed:', e);
-  }
+  } catch (e) {}
 }
 
 export async function fireSavingsMilestone(tier: number, currency: string): Promise<void> {
@@ -210,9 +206,7 @@ export async function fireSavingsMilestone(tier: number, currency: string): Prom
         channelId: 'journey',
       }],
     });
-  } catch (e) {
-    console.warn('Savings milestone notification failed:', e);
-  }
+  } catch (e) {}
 }
 
 export async function cancelAll(): Promise<void> {

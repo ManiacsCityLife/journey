@@ -3,6 +3,9 @@ const config: CapacitorConfig = {
   appId: 'com.journeyforward.app',
   appName: 'Journey Forward',
   webDir: 'dist',
+  server: {
+    androidScheme: 'https'
+  },
   android: {
     buildOptions: {
       keystorePath: undefined,

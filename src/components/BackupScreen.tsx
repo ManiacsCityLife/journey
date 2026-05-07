@@ -21,10 +21,10 @@ export default function BackupScreen({ onBack, onRestored }: BackupScreenProps) 
     setLoading(true);
     showStatus('Preparing backup...', 'info');
     try {
-      const keys = storageKeys();
+      const keys = await storageKeys();
       const backupData: Record<string, string> = {};
       for (const k of keys) {
-        const v = storageGet(k);
+        const v = await storageGet(k);
         if (v !== null) backupData[k] = v;
       }
       const json = JSON.stringify({ version: 2, timestamp: Date.now(), data: backupData }, null, 2);
@@ -98,13 +98,13 @@ export default function BackupScreen({ onBack, onRestored }: BackupScreenProps) 
     input.click();
   }
 
-  function applyRestore(data: Record<string, string>) {
+  async function applyRestore(data: Record<string, string>) {
     setConfirmRestore(null);
     setLoading(true);
     showStatus('Restoring...', 'info');
     try {
       for (const [key, value] of Object.entries(data)) {
-        storageSet(key, value);
+        await storageSet(key, value);
       }
       showStatus('Restore complete! Reloading...', 'success');
       setTimeout(() => onRestored(), 1500);

@@ -1,23 +1,48 @@
-// Simple localStorage storage — works reliably on Android WebView.
-// localStorage persists between app restarts and is only cleared if the user
-// explicitly wipes app data. No async bridge = no hangs, no race conditions.
+import { Preferences } from '@capacitor/preferences';
 
 export async function storageGet(key: string): Promise<string | null> {
-  try { return localStorage.getItem(key); } catch { return null; }
+  try {
+    const { value } = await Preferences.get({ key });
+    return value;
+  } catch (e) {
+    return null;
+  }
 }
 
 export async function storageSet(key: string, value: string): Promise<void> {
-  try { localStorage.setItem(key, value); } catch {}
+  try {
+    await Preferences.set({ key, value });
+  } catch (e) {}
 }
 
 export async function storageRemove(key: string): Promise<void> {
-  try { localStorage.removeItem(key); } catch {}
+  try {
+    await Preferences.remove({ key });
+  } catch (e) {}
 }
 
 export async function storageKeys(): Promise<string[]> {
-  try { return Object.keys(localStorage); } catch { return []; }
+  try {
+    const { keys } = await Preferences.keys();
+    return keys;
+  } catch (e) {
+    return [];
+  }
 }
 
-// No-op — migration no longer needed
-export function migrateFromLocalStorage(): void {}
+export async function storageRemoveAll(): Promise<void> {
+  try {
+    const { keys } = await Preferences.keys();
+    for (const key of keys) {
+      await Preferences.remove({ key });
+    }
+  } catch (e) {}
+}
 
+export async function storageClear(): Promise<void> {
+  try {
+    await Preferences.clear();
+  } catch (e) {}
+}
+
+export function migrateFromLocalStorage(): void {}

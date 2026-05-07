@@ -1331,9 +1331,8 @@ function ProfileScreen({ data, onNavigate }: { data: ReturnType<typeof useAppDat
   }
 
   async function resetAll() {
-    const {storageRemove,storageKeys} = await import('./utils/storage');
-    const keys = await storageKeys();
-    for (const k of keys) await storageRemove(k);
+    const {storageRemoveAll} = await import('./utils/storage');
+    await storageRemoveAll();
     window.location.reload();
   }
 
@@ -1713,14 +1712,10 @@ export default function App() {
   useEffect(() => {
     async function checkLock() {
       if (data.loaded && data.profile?.biometricEnabled) {
-        console.log('App is locked, requesting biometric authentication...');
         setIsLocked(true);
         const success = await authenticateBiometric();
         if (success) {
-          console.log('Authentication successful, unlocking app.');
           setIsLocked(false);
-        } else {
-          console.log('Authentication failed, app remains locked.');
         }
       }
     }

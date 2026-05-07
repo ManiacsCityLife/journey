@@ -156,7 +156,5 @@ export async function shareMilestoneCard(dataUrl: string, days: number): Promise
       a.download = `journey_forward_${days}_days.png`;
       a.click();
     }
-  } catch (e) {
-    console.warn('Share failed:', e);
-  }
+  } catch (e) {}
 }

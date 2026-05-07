@@ -47,9 +47,7 @@ export function useAppData() {
       if (d) { const v = JSON.parse(d); setCompletedDays(v); completedRef.current = v; }
       if (r) setReasons(JSON.parse(r));
       if (g) { const v = JSON.parse(g); setGratitude(v); gratitudeRef.current = v; }
-    } catch (e) {
-      console.warn('loadAll error:', e);
-    }
+    } catch (e) {}
     setLoaded(true);
   }
 
