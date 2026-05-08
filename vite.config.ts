@@ -12,5 +12,16 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
     }
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor': ['react', 'react-dom'],
+          'capacitor': ['@capacitor/core', '@capacitor/preferences', '@capacitor/local-notifications', '@capacitor/filesystem', '@capacitor/share'],
+        }
+      }
+    },
+    chunkSizeWarningLimit: 600,
   }
 });

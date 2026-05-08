@@ -19,13 +19,16 @@ export async function startListening(
     capacitorOnEndCallback = onEnd;
 
     await SpeechRecognition.addListener('partialResults', (data: any) => {
-      if (data.matches?.[0]) onPartial(finalText + data.matches[0]);
+      if (data.matches?.[0]) {
+        finalText = data.matches[0];
+        onPartial(finalText);
+      }
     });
 
     // listeningState fires with { status: 'stopped' } when mic stops
     await SpeechRecognition.addListener('listeningState', (data: any) => {
       if (data?.status === 'stopped') {
-        onFinal(finalText);
+        onFinal(finalText);  // now contains the last recognised speech
         onEnd();
         capacitorOnEndCallback = null;
       }

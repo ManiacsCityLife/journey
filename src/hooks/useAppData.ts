@@ -47,13 +47,15 @@ export function useAppData() {
       if (d) { const v = JSON.parse(d); setCompletedDays(v); completedRef.current = v; }
       if (r) setReasons(JSON.parse(r));
       if (g) { const v = JSON.parse(g); setGratitude(v); gratitudeRef.current = v; }
-    } catch (e) {}
+    } catch (e) {
+      console.error('[useAppData] loadAll failed:', e);
+    }
     setLoaded(true);
   }
 
-  const saveProfile = useCallback((p: UserProfile) => {
+  const saveProfile = useCallback(async (p: UserProfile): Promise<void> => {
     setProfileState(p);
-    storageSet('profile', JSON.stringify(p));
+    await storageSet('profile', JSON.stringify(p));
   }, []);
 
   const saveJournal = useCallback((entries: JournalEntry[]) => {

@@ -62,6 +62,11 @@ function parseTime(timeStr: string): { hour: number; minute: number } {
   return { hour: isNaN(h) ? 8 : h, minute: isNaN(m) ? 0 : m };
 }
 
+function addMinutes(t: { hour: number; minute: number }, mins: number): { hour: number; minute: number } {
+  const total = t.hour * 60 + t.minute + mins;
+  return { hour: Math.floor(total / 60) % 24, minute: total % 60 };
+}
+
 function pick<T>(arr: T[]): T {
   if (!arr.length) return '' as unknown as T;
   return arr[Math.floor(Math.random() * arr.length)];
@@ -119,13 +124,15 @@ export async function scheduleAll(profile: UserProfile, motivations: string[]): 
       });
     }
 
-    // ── Reminders ──
+    // ── Reminders ── (offset by 5 minutes to avoid collision with motivations)
     if (settings.reminders) {
+      const morningR = addMinutes(morning, 5);
+      const eveningR = addMinutes(evening, 5);
       notifications.push({
         id: 3,
         title: 'Journey Forward',
         body: pick(REMINDER_MORNING),
-        schedule: { on: { hour: morning.hour, minute: morning.minute }, repeats: true, every: 'day' },
+        schedule: { on: { hour: morningR.hour, minute: morningR.minute }, repeats: true, every: 'day' },
         smallIcon: 'ic_stat_icon',
         channelId: 'journey',
       });
@@ -133,7 +140,7 @@ export async function scheduleAll(profile: UserProfile, motivations: string[]): 
         id: 4,
         title: 'Journey Forward',
         body: pick(REMINDER_EVENING),
-        schedule: { on: { hour: evening.hour, minute: evening.minute }, repeats: true, every: 'day' },
+        schedule: { on: { hour: eveningR.hour, minute: eveningR.minute }, repeats: true, every: 'day' },
         smallIcon: 'ic_stat_icon',
         channelId: 'journey',
       });

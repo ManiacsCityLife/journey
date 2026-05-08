@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAppData } from './hooks/useAppData';
 import { startListening, stopListening } from './utils/speech';
 import { scheduleAll, fireMilestone, fireSavingsMilestone, requestPermission } from './utils/notifications';
@@ -986,7 +986,10 @@ function HomeScreen({ data, onNavigate }: { data: ReturnType<typeof useAppData>;
 
   async function savePledge() {
     if (!data.profile || !pledge.trim()) return;
-    await data.saveProfile({...data.profile, lastPledgeDate: today, pledgeStreak:(data.profile.pledgeStreak||0)+1, lastPledgeText:pledge.trim()});
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    const wasYesterday = data.profile.lastPledgeDate === yesterday;
+    const newStreak = wasYesterday ? (data.profile.pledgeStreak || 0) + 1 : 1;
+    await data.saveProfile({...data.profile, lastPledgeDate: today, pledgeStreak: newStreak, lastPledgeText:pledge.trim()});
     setPledgeSaved(true); setTimeout(()=>setPledgeSaved(false),2000); setPledge('');
   }
 
@@ -1132,7 +1135,7 @@ function HomeScreen({ data, onNavigate }: { data: ReturnType<typeof useAppData>;
       </div>
 
       {/* Weekly Goals */}
-      <WeeklyGoalsCard profile={data.profile} onSave={data.saveProfile} onEdit={()=>onNavigate('settings')} />
+      <WeeklyGoalsCard profile={data.profile} onSave={data.saveProfile} onEdit={()=>onNavigate('weeklygoals')} />
 
       <div>
         <h2 className="text-xl font-bold text-gray-800 mb-3">Daily Missions</h2>
@@ -1707,6 +1710,7 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>('home');
   const [subScreen, setSubScreen] = useState<string>('');
   const [isLocked, setIsLocked] = useState(false);
+  const soberDays = useMemo(() => data.getSoberStats()?.days ?? 0, [data.profile?.soberDate]);
 
   // Biometric Lock Check
   useEffect(() => {
@@ -1766,7 +1770,7 @@ export default function App() {
       }
       prevSavingsRef.current = moneySaved;
     }
-  }, [data.loaded, data.profile]);
+  }, [data.loaded, soberDays]);
 
 
   function navigate(s: string) {
