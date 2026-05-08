@@ -1008,7 +1008,7 @@ function HomeScreen({ data, onNavigate }: { data: ReturnType<typeof useAppData>;
   }
 
   const now = new Date();
-  const dateStr = now.toLocaleDateString('en-ZA',{weekday:'long',day:'numeric',month:'long'});
+  const dateStr = now.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'});
 
   return (
     <div className="overflow-y-auto h-full px-4 py-5 space-y-4">
@@ -1684,7 +1684,7 @@ function JournalScreen({ data }: { data: ReturnType<typeof useAppData> }) {
         {data.journal.slice(0,20).map(e=>(
           <div key={e.id} className="bg-white rounded-2xl p-4 border border-slate-100">
             <div className="flex justify-between items-center mb-2">
-              <div className="text-slate-400 text-xs">{new Date(e.date).toLocaleDateString('en-ZA',{weekday:'short',day:'numeric',month:'short'})}</div>
+              <div className="text-slate-400 text-xs">{new Date(e.date).toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'})}</div>
               <div className="text-lg">{moodEmoji[e.mood-1]}</div>
             </div>
             <div className="text-slate-700 text-sm leading-relaxed">{e.text}</div>
