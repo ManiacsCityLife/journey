@@ -115,3 +115,100 @@ export const IconGratitude = ({size=24,color='currentColor',className=''}:IconPr
 export const IconTrash = ({size=24,color='currentColor',className=''}:IconProps) => (
   <svg {...d(size,color,className)}><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
 );
+
+// ── Calm/peaceful icon set (mission tiles, meditations, mindfulness) ─────────
+// All thin-line, single-stroke, designed to feel like a quiet illustration.
+
+export const IconWalk = ({size=24,color='currentColor',className=''}:IconProps) => (
+  <svg {...d(size,color,className)}><circle cx="13" cy="4" r="1.6"/><path d="M11 8.5l-1.5 6 4 1 4-1-1.5-6"/><path d="M8.5 14l-2 5M19.5 14l1.5 5"/></svg>
+);
+export const IconCup = ({size=24,color='currentColor',className=''}:IconProps) => (
+  <svg {...d(size,color,className)}><path d="M5 8h12v6a4 4 0 01-4 4H9a4 4 0 01-4-4V8z"/><path d="M17 10h2a2 2 0 010 4h-2"/><path d="M9 5c0-1 .5-1.5 1-2M12 5c0-1 .5-1.5 1-2"/></svg>
+);
+export const IconSun = ({size=24,color='currentColor',className=''}:IconProps) => (
+  <svg {...d(size,color,className)}><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+);
+export const IconBook = ({size=24,color='currentColor',className=''}:IconProps) => (
+  <svg {...d(size,color,className)}><path d="M4 19.5A2.5 2.5 0 016.5 17H20V3H6.5A2.5 2.5 0 004 5.5v14z"/><path d="M4 19.5A2.5 2.5 0 016.5 22H20"/></svg>
+);
+export const IconNote = ({size=24,color='currentColor',className=''}:IconProps) => (
+  <svg {...d(size,color,className)}><path d="M9 17V5l10-2v12"/><circle cx="6" cy="17" r="3"/><circle cx="16" cy="15" r="3"/></svg>
+);
+export const IconSeedling = ({size=24,color='currentColor',className=''}:IconProps) => (
+  <svg {...d(size,color,className)}><path d="M12 22V11"/><path d="M5 8c0-2 2-4 4-4s3 2 3 4c0 2-3 3-3 3s-2-1-4-3z"/><path d="M19 6c-2 0-4 2-4 4s3 3 3 3 1-3-1-5"/></svg>
+);
+export const IconTeapot = ({size=24,color='currentColor',className=''}:IconProps) => (
+  <svg {...d(size,color,className)}><path d="M4 12h12a4 4 0 010 8H8a4 4 0 01-4-4v-4z"/><path d="M16 14h2a3 3 0 010 6h-2"/><path d="M9 8c0-1 .5-2 1-3M13 8c0-1 .5-2 1-3"/></svg>
+);
+export const IconCloudy = ({size=24,color='currentColor',className=''}:IconProps) => (
+  <svg {...d(size,color,className)}><path d="M17.5 19a4.5 4.5 0 100-9c-.4-2.8-2.8-5-5.5-5a5.5 5.5 0 00-5.5 5.5c0 .4 0 .8.1 1.2A4 4 0 008 19h9.5z"/></svg>
+);
+export const IconBath = ({size=24,color='currentColor',className=''}:IconProps) => (
+  <svg {...d(size,color,className)}><path d="M3 13h18v3a4 4 0 01-4 4H7a4 4 0 01-4-4v-3z"/><path d="M7 13V6a2 2 0 014 0M5 21l-1 1M19 21l1 1"/></svg>
+);
+export const IconClean = ({size=24,color='currentColor',className=''}:IconProps) => (
+  <svg {...d(size,color,className)}><path d="M14 4l4 4-9 9-4-4z"/><path d="M5 13l-3 7 7-3"/></svg>
+);
+export const IconBalance = ({size=24,color='currentColor',className=''}:IconProps) => (
+  <svg {...d(size,color,className)}><path d="M12 3v18M5 7l-3 7h6zM19 7l-3 7h6z"/><path d="M5 21h14"/></svg>
+);
+export const IconSparkles = ({size=24,color='currentColor',className=''}:IconProps) => (
+  <svg {...d(size,color,className)}><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg>
+);
+export const IconHands = ({size=24,color='currentColor',className=''}:IconProps) => (
+  <svg {...d(size,color,className)}><path d="M8 11V5a2 2 0 014 0v6"/><path d="M16 11V5a2 2 0 00-4 0v6"/><path d="M5 11h14a0 0 0 010 0v3a5 5 0 01-5 5h-4a5 5 0 01-5-5v-3z"/></svg>
+);
+export const IconPalette = ({size=24,color='currentColor',className=''}:IconProps) => (
+  <svg {...d(size,color,className)}><path d="M12 22a10 10 0 110-20 8 8 0 018 8 4 4 0 01-4 4h-2a2 2 0 00-2 2c0 1 1 2 1 3 0 1-1 3-1 3z"/><circle cx="7" cy="11" r="1"/><circle cx="9" cy="6" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="18" cy="9" r="1"/></svg>
+);
+export const IconGarden = ({size=24,color='currentColor',className=''}:IconProps) => (
+  <svg {...d(size,color,className)}><path d="M12 22V14"/><path d="M12 14c-3 0-6-2-6-5 0-2 2-4 6-4s6 2 6 4c0 3-3 5-6 5z"/><path d="M3 22h18"/></svg>
+);
+export const IconBookmark = ({size=24,color='currentColor',className=''}:IconProps) => (
+  <svg {...d(size,color,className)}><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+);
+export const IconCalendar = ({size=24,color='currentColor',className=''}:IconProps) => (
+  <svg {...d(size,color,className)}><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+);
+export const IconHourglass = ({size=24,color='currentColor',className=''}:IconProps) => (
+  <svg {...d(size,color,className)}><path d="M6 2h12M6 22h12M8 2v4l4 4 4-4V2M8 22v-4l4-4 4 4v4"/></svg>
+);
+export const IconFootprint = ({size=24,color='currentColor',className=''}:IconProps) => (
+  <svg {...d(size,color,className)}><path d="M14 4c-1.5 0-3 2-3 5s.5 5 2 6 3-1 3-4-.5-7-2-7z"/><path d="M9 14c-1 0-2 1-2 3 0 1 1 2 2 2s2-1 2-2-1-3-2-3z"/></svg>
+);
+export const IconWaveHand = ({size=24,color='currentColor',className=''}:IconProps) => (
+  <svg {...d(size,color,className)}><path d="M2 12c1-2 2-3 4-3M22 12c-1-2-2-3-4-3"/><path d="M8 9V5a2 2 0 014 0v4M12 9V4a2 2 0 014 0v6"/><path d="M16 10c0 4-2 8-7 8s-5-4-5-7"/></svg>
+);
+export const IconBubble = ({size=24,color='currentColor',className=''}:IconProps) => (
+  <svg {...d(size,color,className)}><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+);
+export const IconLaughter = ({size=24,color='currentColor',className=''}:IconProps) => (
+  <svg {...d(size,color,className)}><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+);
+export const IconLight = ({size=24,color='currentColor',className=''}:IconProps) => (
+  <svg {...d(size,color,className)}><path d="M9 18h6M10 22h4M12 2a7 7 0 00-4 12.5c.5.4 1 1 1 1.5v1h6v-1c0-.5.5-1.1 1-1.5A7 7 0 0012 2z"/></svg>
+);
+export const IconBell = ({size=24,color='currentColor',className=''}:IconProps) => (
+  <svg {...d(size,color,className)}><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+);
+export const IconTea = ({size=24,color='currentColor',className=''}:IconProps) => (
+  <svg {...d(size,color,className)}><path d="M3 9h14v8a4 4 0 01-4 4H7a4 4 0 01-4-4V9z"/><path d="M17 11h2a3 3 0 010 6h-2"/><path d="M7 4l1 2M11 4l-1 2M14 4l1 2"/></svg>
+);
+export const IconAffirm = ({size=24,color='currentColor',className=''}:IconProps) => (
+  <svg {...d(size,color,className)}><path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/></svg>
+);
+export const IconShieldLock = ({size=24,color='currentColor',className=''}:IconProps) => (
+  <svg {...d(size,color,className)}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><circle cx="12" cy="11" r="1.5"/><path d="M12 12.5v3"/></svg>
+);
+export const IconWifiOff = ({size=24,color='currentColor',className=''}:IconProps) => (
+  <svg {...d(size,color,className)}><path d="M2 6c2-2 5-3 8-3M22 6c-2-2-5-3-8-3M5 10c2-1 4-1.5 6-1.5M19 10c-2-1-4-1.5-6-1.5M9 14c1-.5 2-1 3-1s2 .5 3 1"/><circle cx="12" cy="18" r="1"/><line x1="3" y1="3" x2="21" y2="21"/></svg>
+);
+export const IconLock = ({size=24,color='currentColor',className=''}:IconProps) => (
+  <svg {...d(size,color,className)}><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>
+);
+export const IconKey = ({size=24,color='currentColor',className=''}:IconProps) => (
+  <svg {...d(size,color,className)}><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M16 5l3 3M14 7l3 3"/></svg>
+);
+export const IconCopy = ({size=24,color='currentColor',className=''}:IconProps) => (
+  <svg {...d(size,color,className)}><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+);

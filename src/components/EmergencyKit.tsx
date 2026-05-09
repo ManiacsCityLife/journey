@@ -2,8 +2,45 @@ import React, { useState, useEffect, useRef } from 'react';
 import type { UserProfile } from '../types';
 import { speak, stopSpeaking } from '../utils/tts';
 import { startAmbient, stopAmbient, type AmbientType } from '../utils/ambient';
-import SoberBuddyChat from './SoberBuddyChat';
-import { IconPhone, IconWind, IconLeaf, IconBrain, IconHeart, IconPuzzle, IconBody, IconTimer, IconProgress } from './Icons';
+import { IconPhone, IconWind, IconLeaf, IconBrain, IconHeart, IconPuzzle, IconBody, IconTimer, IconProgress, IconWave, IconAnchor, IconCompass, IconShield, IconTarget, IconBalance, IconAffirm, IconSparkles, IconBookmark, IconSeedling, IconHome, IconCloud, IconHourglass, IconWaveHand, IconHands, IconLight } from './Icons';
+
+// Calm icon mapper for the kit/meditations. Use semantic names rather than
+// emojis so the visual language stays soft and consistent.
+type KitIconName = 'wave'|'lotus'|'sparkle'|'home'|'heart'|'brain'|'balance'|'target'|'shield'|'butterfly'|'compassion'|'magnify'|'no'|'anchor'|'eye'|'observer'|'tag'|'breath'|'drop'|'flame'|'pause'|'forward'|'milestone'|'cloud'|'sun'|'moon'|'celebrate'|'hand';
+
+function KitIcon({ name, size = 24, color = '#0d9488' }: { name: KitIconName | string; size?: number; color?: string }) {
+  const props = { size, color };
+  switch (name as KitIconName) {
+    case 'wave':       return <IconWave {...props}/>;
+    case 'lotus':      return <IconLeaf {...props}/>;
+    case 'sparkle':    return <IconSparkles {...props}/>;
+    case 'home':       return <IconHome {...props}/>;
+    case 'heart':      return <IconHeart {...props}/>;
+    case 'brain':      return <IconBrain {...props}/>;
+    case 'balance':    return <IconBalance {...props}/>;
+    case 'target':     return <IconTarget {...props}/>;
+    case 'shield':     return <IconShield {...props}/>;
+    case 'butterfly':  return <IconSparkles {...props}/>;
+    case 'compassion': return <IconAffirm {...props}/>;
+    case 'magnify':    return <IconCompass {...props}/>;
+    case 'no':         return <IconShield {...props}/>;
+    case 'anchor':     return <IconAnchor {...props}/>;
+    case 'eye':        return <IconCompass {...props}/>;
+    case 'observer':   return <IconCloud {...props}/>;
+    case 'tag':        return <IconBookmark {...props}/>;
+    case 'breath':     return <IconWind {...props}/>;
+    case 'drop':       return <IconWave {...props}/>;
+    case 'flame':      return <IconLight {...props}/>;
+    case 'pause':      return <IconHourglass {...props}/>;
+    case 'forward':    return <IconProgress {...props}/>;
+    case 'cloud':      return <IconCloud {...props}/>;
+    case 'sun':        return <IconLight {...props}/>;
+    case 'moon':       return <IconCloud {...props}/>;
+    case 'celebrate':  return <IconHands {...props}/>;
+    case 'hand':       return <IconWaveHand {...props}/>;
+    default:           return <IconLeaf {...props}/>;
+  }
+}
 
 interface EmergencyKitProps {
   profile: UserProfile | null;
@@ -70,7 +107,7 @@ const QUICK_REMINDERS = [
 
 const MEDITATIONS = [
   {
-    id: 'urge_surf', title: 'Urge Surfing', duration: '5 min', icon: '🌊',
+    id: 'urge_surf', title: 'Urge Surfing', duration: '5 min', icon: 'wave',
     desc: 'Ride the craving like a wave', ambient: 'ocean' as AmbientType,
     script: [
       "Find a comfortable position. Close your eyes if you can. Take a slow breath in... and out.",
@@ -87,7 +124,7 @@ const MEDITATIONS = [
     ]
   },
   {
-    id: 'body_scan', title: 'Body Scan', duration: '7 min', icon: '🧘',
+    id: 'body_scan', title: 'Body Scan', duration: '7 min', icon: 'lotus',
     desc: 'Release tension from head to toe', ambient: 'rain' as AmbientType,
     script: [
       "Lie down or sit comfortably. Close your eyes. Let your body become heavy.",
@@ -104,7 +141,7 @@ const MEDITATIONS = [
     ]
   },
   {
-    id: 'gratitude', title: 'Gratitude Reset', duration: '4 min', icon: '🌟',
+    id: 'gratitude', title: 'Gratitude Reset', duration: '4 min', icon: 'sparkle',
     desc: 'Shift your mindset with gratitude', ambient: 'forest' as AmbientType,
     script: [
       "Close your eyes. Take a slow breath. We're going to shift your focus for a few minutes.",
@@ -120,7 +157,7 @@ const MEDITATIONS = [
     ]
   },
   {
-    id: 'safe_place', title: 'Safe Place', duration: '6 min', icon: '🏡',
+    id: 'safe_place', title: 'Safe Place', duration: '6 min', icon: 'home',
     desc: 'Visualise your calm, safe space', ambient: 'fire' as AmbientType,
     script: [
       "Close your eyes. Take three slow breaths. Let your body settle.",
@@ -136,7 +173,7 @@ const MEDITATIONS = [
     ]
   },
   {
-    id: 'self_compassion', title: 'Self-Compassion', duration: '5 min', icon: '💚',
+    id: 'self_compassion', title: 'Self-Compassion', duration: '5 min', icon: 'heart',
     desc: 'Be kind to yourself right now', ambient: 'rain' as AmbientType,
     script: [
       "Close your eyes. Take a breath. This meditation is about being kind to yourself.",
@@ -156,7 +193,7 @@ const MEDITATIONS = [
 
 const CBT_GUIDES = [
   {
-    id: 'thought_challenge', title: 'Challenge the Thought', icon: '🧠', desc: 'Examine and reframe a craving thought',
+    id: 'thought_challenge', title: 'Challenge the Thought', icon: 'brain', desc: 'Examine and reframe a craving thought',
     steps: [
       { q: "What is the exact thought or urge?", placeholder: "e.g. I need a drink to relax..." },
       { q: "What evidence supports this thought?", placeholder: "e.g. It has helped me relax before..." },
@@ -166,7 +203,7 @@ const CBT_GUIDES = [
     ]
   },
   {
-    id: 'urge_surf_cbt', title: 'Surf the Urge', icon: '🌊', desc: 'Ride out the craving without acting on it',
+    id: 'urge_surf_cbt', title: 'Surf the Urge', icon: 'wave', desc: 'Ride out the craving without acting on it',
     steps: [
       { q: "Rate your urge right now (1–10):", placeholder: "e.g. 8" },
       { q: "Where do you feel it in your body?", placeholder: "e.g. Tight chest, restless hands..." },
@@ -176,7 +213,7 @@ const CBT_GUIDES = [
     ]
   },
   {
-    id: 'cost_benefit', title: 'Cost-Benefit Check', icon: '⚖️', desc: 'Weigh the real costs vs the false benefits',
+    id: 'cost_benefit', title: 'Cost-Benefit Check', icon: 'balance', desc: 'Weigh the real costs vs the false benefits',
     steps: [
       { q: "What do you think drinking will give you right now?", placeholder: "e.g. Relief from anxiety, fun, sleep..." },
       { q: "What are the short-term costs of drinking today?", placeholder: "e.g. Break my streak, feel guilty tomorrow..." },
@@ -186,7 +223,7 @@ const CBT_GUIDES = [
     ]
   },
   {
-    id: 'trigger_plan', title: 'Trigger Action Plan', icon: '🎯', desc: 'Build your personal response to triggers',
+    id: 'trigger_plan', title: 'Trigger Action Plan', icon: 'target', desc: 'Build your personal response to triggers',
     steps: [
       { q: "What situation triggered this craving?", placeholder: "e.g. Argument with partner, Friday evening..." },
       { q: "What emotion are you feeling underneath the urge?", placeholder: "e.g. Lonely, anxious, bored, angry..." },
@@ -196,7 +233,7 @@ const CBT_GUIDES = [
     ]
   },
   {
-    id: 'relapse_review', title: 'Relapse Prevention', icon: '🛡️', desc: 'Identify your high-risk situations',
+    id: 'relapse_review', title: 'Relapse Prevention', icon: 'shield', desc: 'Identify your high-risk situations',
     steps: [
       { q: "What are your top 3 high-risk situations?", placeholder: "e.g. Fridays, social events, stress at work..." },
       { q: "What thoughts usually come before a drink?", placeholder: "e.g. I deserve it, just one will not hurt..." },
@@ -206,7 +243,7 @@ const CBT_GUIDES = [
     ]
   },
   {
-    id: 'identity_shift', title: 'Identity Shift', icon: '🦋', desc: 'Reinforce your sober identity',
+    id: 'identity_shift', title: 'Identity Shift', icon: 'butterfly', desc: 'Reinforce your sober identity',
     steps: [
       { q: "Complete: I am not a person who drinks. I am a person who...", placeholder: "e.g. takes care of my family, values my health..." },
       { q: "What kind of person are you becoming through sobriety?", placeholder: "e.g. Present, reliable, clear-headed, free..." },
@@ -216,7 +253,7 @@ const CBT_GUIDES = [
     ]
   },
   {
-    id: 'shame_release', title: 'Release the Shame', icon: '💜', desc: 'Work through guilt without giving up',
+    id: 'shame_release', title: 'Release the Shame', icon: 'compassion', desc: 'Work through guilt without giving up',
     steps: [
       { q: "What are you feeling ashamed or guilty about right now?", placeholder: "e.g. I drank last night, I let people down..." },
       { q: "Is this shame helping you or hurting you right now?", placeholder: "e.g. It's making me want to escape more..." },
@@ -226,7 +263,7 @@ const CBT_GUIDES = [
     ]
   },
   {
-    id: 'craving_anatomy', title: 'Anatomy of a Craving', icon: '🔬', desc: 'Understand your craving to defeat it',
+    id: 'craving_anatomy', title: 'Anatomy of a Craving', icon: 'magnify', desc: 'Understand your craving to defeat it',
     steps: [
       { q: "When exactly did the craving start?", placeholder: "e.g. 5pm when I got home from work..." },
       { q: "What were you doing, feeling, or thinking just before it hit?", placeholder: "e.g. Driving past the bottle store, feeling lonely..." },
@@ -236,7 +273,7 @@ const CBT_GUIDES = [
     ]
   },
   {
-    id: 'alcohol_lies', title: 'Alcohol Lies', icon: '🚫', desc: 'Expose the false promises of alcohol',
+    id: 'alcohol_lies', title: 'Alcohol Lies', icon: 'no', desc: 'Expose the false promises of alcohol',
     steps: [
       { q: "What is alcohol promising you right now?", placeholder: "e.g. You'll feel better, relax, have fun..." },
       { q: "Has alcohol actually delivered on that promise before? What really happened?", placeholder: "e.g. I felt relief for an hour then felt worse..." },
@@ -246,7 +283,7 @@ const CBT_GUIDES = [
     ]
   },
   {
-    id: 'values_anchor', title: 'Values Anchor', icon: '⚓', desc: 'Ground yourself in what truly matters',
+    id: 'values_anchor', title: 'Values Anchor', icon: 'anchor', desc: 'Ground yourself in what truly matters',
     steps: [
       { q: "Name your top 3 values (e.g. family, honesty, health):", placeholder: "e.g. Family, freedom, self-respect..." },
       { q: "How does staying sober today connect to those values?", placeholder: "e.g. Sobriety means I'm present for my kids..." },
@@ -256,7 +293,7 @@ const CBT_GUIDES = [
     ]
   },
   {
-    id: 'emotional_audit', title: 'Emotional Audit', icon: '🔎', desc: "Name what you're really feeling right now",
+    id: 'emotional_audit', title: 'Emotional Audit', icon: 'magnify', desc: "Name what you're really feeling right now",
     steps: [
       { q: "List every emotion you're feeling right now, even conflicting ones:", placeholder: "e.g. Anxious, relieved, lonely, proud, bored..." },
       { q: "Which feeling is strongest? Where do you feel it in your body?", placeholder: "e.g. Anxiety — tight chest and clenched jaw..." },
@@ -266,7 +303,7 @@ const CBT_GUIDES = [
     ]
   },
   {
-    id: 'grief_loss', title: 'Grieving the Drink', icon: '💧', desc: 'Process the loss of alcohol as a coping tool',
+    id: 'grief_loss', title: 'Grieving the Drink', icon: 'drop', desc: 'Process the loss of alcohol as a coping tool',
     steps: [
       { q: "What do you actually miss about drinking? Be honest.", placeholder: "e.g. The ritual, the numbing, the social ease..." },
       { q: "What need was alcohol meeting for you?", placeholder: "e.g. Relief from anxiety, belonging, escape, reward..." },
@@ -286,8 +323,6 @@ export default function EmergencyKit({ profile, soberDays, reasons, onLogCraving
   const [breathProgress, setBreathProgress] = useState(0);
   const [selectedPattern, setSelectedPattern] = useState(0);
   const [intensity, setIntensity] = useState(7);
-  const [showLumi, setShowLumi] = useState(false);
-  const [done, setDone] = useState(false);
 
   // Meditation state
   const [activeMed, setActiveMed] = useState<typeof MEDITATIONS[0] | null>(null);
@@ -333,7 +368,7 @@ export default function EmergencyKit({ profile, soberDays, reasons, onLogCraving
     if (timerRunning) {
       timerRef.current = setInterval(() => {
         setUrgeSeconds(s => {
-          if (s >= 180) { setTimerRunning(false); setDone(true); return s; }
+          if (s >= 900) { setTimerRunning(false); return s; }
           return s + 1;
         });
       }, 1000);
@@ -344,12 +379,12 @@ export default function EmergencyKit({ profile, soberDays, reasons, onLogCraving
   useEffect(() => {
     if (tab !== 'breathing') return;
     const pattern = BREATHING_PATTERNS[selectedPattern];
-    const phases: { name: typeof breathPhase; dur: number }[] = [
-      { name: 'in', dur: pattern.in },
-      { name: 'hold1', dur: pattern.hold1 },
-      { name: 'out', dur: pattern.out },
-      ...(pattern.hold2 > 0 ? [{ name: 'hold2' as typeof breathPhase, dur: pattern.hold2 }] : []),
-    ].filter(p => p.dur > 0);
+    const phases: { name: typeof breathPhase; dur: number }[] = ([
+      { name: 'in' as const, dur: pattern.in },
+      { name: 'hold1' as const, dur: pattern.hold1 },
+      { name: 'out' as const, dur: pattern.out },
+      ...(pattern.hold2 > 0 ? [{ name: 'hold2' as const, dur: pattern.hold2 }] : []),
+    ]).filter(p => p.dur > 0);
 
     let phaseIdx = 0, elapsed = 0;
     breathRef.current = setInterval(() => {
@@ -411,14 +446,6 @@ export default function EmergencyKit({ profile, soberDays, reasons, onLogCraving
 
   const breathLabels = { in: 'Breathe In', hold1: 'Hold', out: 'Breathe Out', hold2: 'Hold' };
   const breathColors = { in: '#0d9488', hold1: '#7c3aed', out: '#0891b2', hold2: '#7c3aed' };
-
-  if (showLumi) {
-    return (
-      <div className="fixed inset-0 bg-slate-50 z-50 flex flex-col">
-        <SoberBuddyChat profile={profile} soberDays={soberDays} emergencyMode onClose={() => setShowLumi(false)} />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -497,7 +524,7 @@ export default function EmergencyKit({ profile, soberDays, reasons, onLogCraving
                     else if (tool.id === 'meditation') setTab('meditation');
                     else if (tool.id === 'reasons') setTab('reasons');
                     else if (tool.id === 'halt') setTab('halt');
-                    else if (tool.id === 'urge_timer') { setUrgeSeconds(0); setTimerRunning(false); setDone(false); setTab('urge_timer'); }
+                    else if (tool.id === 'urge_timer') { setUrgeSeconds(0); setTimerRunning(false); setTab('urge_timer'); }
                     else if (tool.id === 'tape_forward') setTab('tape_forward');
                     else if (tool.id === 'mindfulness') setTab('mindfulness');
                     else if (tool.id === 'puzzle') { if (onNavigatePuzzle) onNavigatePuzzle(); else onBack(); }
@@ -603,7 +630,9 @@ export default function EmergencyKit({ profile, soberDays, reasons, onLogCraving
             {activeMed ? (
               <div className="space-y-4">
                 <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm text-center">
-                  <div className="text-4xl mb-2">{activeMed.icon}</div>
+                  <div className="w-14 h-14 rounded-full bg-teal-50 flex items-center justify-center mx-auto mb-3 text-teal-700">
+                    <KitIcon name={activeMed.icon} size={28}/>
+                  </div>
                   <div className="text-slate-800 font-semibold text-lg mb-1">{activeMed.title}</div>
                   <div className="text-teal-600 text-xs mb-3">
                     Step {Math.min(medStep + 1, activeMed.script.length)} of {activeMed.script.length}
@@ -623,8 +652,8 @@ export default function EmergencyKit({ profile, soberDays, reasons, onLogCraving
                       ))}
                     </div>
                   )}
-                  <div className="mt-3 text-slate-400 text-xs">
-                    🎵 {activeMed.ambient} sounds playing
+                  <div className="mt-3 text-slate-400 text-xs flex items-center justify-center gap-1.5">
+                    <IconWind size={12} color="#94a3b8"/>{activeMed.ambient} sounds playing
                   </div>
                 </div>
                 <button onClick={stopMeditation} className="w-full py-3 rounded-xl bg-slate-100 text-slate-600 font-semibold text-sm">
@@ -633,19 +662,22 @@ export default function EmergencyKit({ profile, soberDays, reasons, onLogCraving
               </div>
             ) : (
               <div className="space-y-3">
-                <div className="bg-teal-50 rounded-xl p-3 border border-teal-100 text-xs text-teal-700">
-                  🔊 Your device will speak each step aloud with ambient background sounds. Find a quiet place.
+                <div className="bg-teal-50 rounded-xl p-3 border border-teal-100 text-xs text-teal-700 flex items-start gap-2">
+                  <IconWind size={14} color="#0d9488" className="mt-0.5 flex-shrink-0"/>
+                  <span>Your device will speak each step aloud with gentle ambient sound. Find a quiet place.</span>
                 </div>
                 {MEDITATIONS.map(med => (
                   <button key={med.id} onClick={() => startMeditation(med)}
                     className="w-full bg-white rounded-2xl p-4 border border-slate-100 shadow-sm text-left active:scale-95 transition-transform">
                     <div className="flex items-center gap-3">
-                      <div className="text-3xl">{med.icon}</div>
+                      <div className="w-11 h-11 rounded-full bg-teal-50 flex items-center justify-center text-teal-700 flex-shrink-0">
+                        <KitIcon name={med.icon} size={22}/>
+                      </div>
                       <div className="flex-1">
                         <div className="text-slate-800 font-semibold text-sm">{med.title}</div>
                         <div className="text-slate-400 text-xs mt-0.5">{med.desc}</div>
                       </div>
-                      <div>
+                      <div className="text-right">
                         <div className="text-teal-600 text-xs font-semibold">{med.duration}</div>
                         <div className="text-slate-400 text-xs">{med.ambient}</div>
                       </div>
@@ -710,7 +742,9 @@ export default function EmergencyKit({ profile, soberDays, reasons, onLogCraving
                   <button key={guide.id} onClick={() => { setActiveCBT(guide); setCbtStep(0); setCbtAnswers([]); }}
                     className="w-full bg-white rounded-2xl p-4 border border-slate-100 shadow-sm text-left active:scale-95 transition-transform">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center text-xl flex-shrink-0">{guide.icon}</div>
+                      <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center text-teal-700 flex-shrink-0">
+                        <KitIcon name={guide.icon} size={20}/>
+                      </div>
                       <div className="flex-1">
                         <div className="text-slate-800 font-semibold text-sm">{guide.title}</div>
                         <div className="text-slate-400 text-xs mt-0.5">{guide.desc}</div>
@@ -806,7 +840,7 @@ export default function EmergencyKit({ profile, soberDays, reasons, onLogCraving
                   className={`flex-1 py-3 rounded-xl font-semibold text-sm ${timerRunning ? 'bg-slate-100 text-slate-600' : 'bg-teal-600 text-white'}`}>
                   {timerRunning ? '⏸ Pause' : urgeSeconds === 0 ? '▶ Start Timer' : '▶ Resume'}
                 </button>
-                <button onClick={() => { setUrgeSeconds(0); setTimerRunning(false); setDone(false); }}
+                <button onClick={() => { setUrgeSeconds(0); setTimerRunning(false); }}
                   className="px-4 py-3 rounded-xl bg-slate-100 text-slate-600 font-semibold text-sm">Reset</button>
               </div>
             </div>
@@ -834,16 +868,18 @@ export default function EmergencyKit({ profile, soberDays, reasons, onLogCraving
             <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
               <div className="text-slate-800 font-bold text-base mb-1">Play the Tape Forward</div>
               <div className="text-slate-500 text-sm mb-4">Do not just imagine the drink. Play the full tape — what happens next, and next, and next.</div>
-              {[
-                { time: 'Right now', icon: '🍺', text: 'It feels like relief. The craving quiets. For a moment, it works.' },
-                { time: '30 minutes later', icon: '😶', text: 'The guilt starts. You have broken your streak. Your sobriety count resets to zero.' },
-                { time: 'A few hours later', icon: '😔', text: 'You feel worse than before you drank. The original problem is still there — plus shame.' },
-                { time: 'Tomorrow morning', icon: '😞', text: 'You wake up and remember. All the days you built are gone. You have to start again.' },
-                { time: 'One week later', icon: '💭', text: 'You wonder how far you could have gone. You think about the person you were becoming.' },
-                { time: 'If you do not drink', icon: '💪', text: 'This craving passes in minutes. Your streak survives. Tomorrow you are stronger. Your future self thanks you.' },
-              ].map((step, i) => (
+              {([
+                { time: 'Right now', icon: 'drop', text: 'It feels like relief. The craving quiets. For a moment, it works.' },
+                { time: '30 minutes later', icon: 'pause', text: 'The guilt starts. You have broken your streak. Your sobriety count resets to zero.' },
+                { time: 'A few hours later', icon: 'cloud', text: 'You feel worse than before you drank. The original problem is still there — plus shame.' },
+                { time: 'Tomorrow morning', icon: 'sun', text: 'You wake up and remember. All the days you built are gone. You have to start again.' },
+                { time: 'One week later', icon: 'observer', text: 'You wonder how far you could have gone. You think about the person you were becoming.' },
+                { time: 'If you do not drink', icon: 'shield', text: 'This craving passes in minutes. Your streak survives. Tomorrow you are stronger. Your future self thanks you.' },
+              ] as { time: string; icon: KitIconName; text: string }[]).map((step, i) => (
                 <div key={i} className={`flex items-start gap-3 p-3 rounded-xl mb-2 ${i === 5 ? 'bg-teal-50 border border-teal-100' : 'bg-slate-50'}`}>
-                  <div className="text-2xl flex-shrink-0">{step.icon}</div>
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${i === 5 ? 'bg-white text-teal-700' : 'bg-white text-slate-500'}`}>
+                    <KitIcon name={step.icon} size={18} color={i === 5 ? '#0d9488' : '#64748b'}/>
+                  </div>
                   <div>
                     <div className={`text-xs font-bold uppercase tracking-wider mb-0.5 ${i === 5 ? 'text-teal-600' : 'text-slate-400'}`}>{step.time}</div>
                     <div className={`text-sm leading-relaxed ${i === 5 ? 'text-teal-700 font-medium' : 'text-slate-600'}`}>{step.text}</div>
@@ -864,16 +900,18 @@ export default function EmergencyKit({ profile, soberDays, reasons, onLogCraving
             <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
               <div className="text-slate-800 font-bold text-base mb-1">Mindfulness Training</div>
               <div className="text-slate-500 text-sm mb-4">Practice staying present. Your craving is in the future. Right now, you are okay.</div>
-              {[
-                { title: '5-4-3-2-1 Grounding', icon: '👁', desc: 'Name 5 things you can see. 4 you can touch. 3 you can hear. 2 you can smell. 1 you can taste. You are here. You are safe.' },
-                { title: 'One Breath at a Time', icon: '\U0001f32c', desc: 'You do not have to stay sober forever. Just for this breath. Breathe in. Breathe out. That is all you have to do right now.' },
-                { title: 'Body Check', icon: '🧘', desc: 'Where do you feel the craving in your body? Put your hand there. Breathe into it. Feelings are just sensations — they cannot harm you.' },
-                { title: 'The Observer', icon: '👀', desc: 'Watch the craving like a cloud passing through. You are not the craving. You are the sky it passes through. Let it move.' },
-                { title: 'Label It', icon: '🏷', desc: 'Say to yourself: "I notice I am having a craving." Not "I need a drink." The label creates distance. Distance creates choice.' },
-                { title: 'Present Moment Anchor', icon: '\u2693', desc: 'Feel your feet on the floor. The weight of your body. The temperature of the air. Right now, in this second, you are not drinking. That is enough.' },
-              ].map((ex, i) => (
+              {([
+                { title: '5-4-3-2-1 Grounding', icon: 'eye', desc: 'Name 5 things you can see. 4 you can touch. 3 you can hear. 2 you can smell. 1 you can taste. You are here. You are safe.' },
+                { title: 'One Breath at a Time', icon: 'breath', desc: 'You do not have to stay sober forever. Just for this breath. Breathe in. Breathe out. That is all you have to do right now.' },
+                { title: 'Body Check', icon: 'lotus', desc: 'Where do you feel the craving in your body? Put your hand there. Breathe into it. Feelings are just sensations — they cannot harm you.' },
+                { title: 'The Observer', icon: 'observer', desc: 'Watch the craving like a cloud passing through. You are not the craving. You are the sky it passes through. Let it move.' },
+                { title: 'Label It', icon: 'tag', desc: 'Say to yourself: "I notice I am having a craving." Not "I need a drink." The label creates distance. Distance creates choice.' },
+                { title: 'Present Moment Anchor', icon: 'anchor', desc: 'Feel your feet on the floor. The weight of your body. The temperature of the air. Right now, in this second, you are not drinking. That is enough.' },
+              ] as { title: string; icon: KitIconName; desc: string }[]).map((ex, i) => (
                 <div key={i} className="flex items-start gap-3 p-4 bg-slate-50 rounded-xl mb-3 border border-slate-100">
-                  <div className="text-2xl flex-shrink-0">{ex.icon}</div>
+                  <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-teal-700 flex-shrink-0 border border-slate-200">
+                    <KitIcon name={ex.icon} size={20}/>
+                  </div>
                   <div>
                     <div className="font-semibold text-slate-800 text-sm mb-1">{ex.title}</div>
                     <div className="text-slate-500 text-sm leading-relaxed">{ex.desc}</div>

@@ -8,6 +8,7 @@ dist/
 android/app/build/
 android/build/
 *.apk
+*.aab
 *.bundle
 
 # IDEs
@@ -22,5 +23,41 @@ Thumbs.db
 
 # Environment variables / Secrets
 .env
+.env.local
+.env.production
 local.properties
+*.keystore
+*.jks
 google-services.json
+
+# Claude / agent scratch
+.claude/
+
+# ── Stray non-project files often dropped into android/ root ────────────────
+# Filter only files at the immediate `android/` root — never recurse into
+# `android/app/` (which contains legitimate PNG icons in res/mipmap).
+/android/*.pdf
+/android/*.docx
+/android/*.xlsx
+/android/*.csv
+/android/*.zip
+/android/*.png
+/android/*.jpg
+/android/*.jpeg
+/android/*.gif
+/android/*.webp
+/android/*.py
+/android/*.sql
+/android/*.bat
+/android/*.sh
+/android/*.ps1
+/android/*.gs
+/android/*.bak
+/android/*.html
+/android/*.pub
+/android/*.AppxBundle
+/android/[a-zA-Z0-9]*.json
+# Stray copy of the React source tree
+/android/src/
+/android/upload*/
+/android/app/build/

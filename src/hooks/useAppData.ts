@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { storageGet, storageSet } from '../utils/storage';
-import type { UserProfile, JournalEntry, CravingLog, SleepLog, ThoughtLog, ActivityLog, DailyHeatmapEntry, GratitudeEntry } from '../types';
+import type { UserProfile, JournalEntry, CravingLog, SleepLog, ThoughtLog, ActivityLog, DailyHeatmapEntry, GratitudeEntry, VisionBoard, AffirmationFavorite } from '../types';
 
 export function useAppData() {
   const [profile, setProfileState] = useState<UserProfile | null>(null);
@@ -12,6 +12,8 @@ export function useAppData() {
   const [completedDays, setCompletedDays] = useState<number[]>([]);
   const [reasons, setReasons] = useState<string[]>([]);
   const [gratitude, setGratitude] = useState<GratitudeEntry[]>([]);
+  const [visionBoards, setVisionBoards] = useState<VisionBoard[]>([]);
+  const [affirmationFavs, setAffirmationFavs] = useState<AffirmationFavorite[]>([]);
   const [loaded, setLoaded] = useState(false);
 
   // Refs keep latest value in sync for writes that fire in quick succession
@@ -26,7 +28,7 @@ export function useAppData() {
 
   async function loadAll() {
     try {
-      const [p, j, c, s, t, a, d, r, g] = await Promise.all([
+      const [p, j, c, s, t, a, d, r, g, vb, af] = await Promise.all([
         storageGet('profile'),
         storageGet('journal'),
         storageGet('cravings'),
@@ -35,7 +37,9 @@ export function useAppData() {
         storageGet('activities'),
         storageGet('completedDays'),
         storageGet('reasons'),
-        storageGet('gratitude')
+        storageGet('gratitude'),
+        storageGet('visionBoards'),
+        storageGet('affirmationFavs')
       ]);
 
       if (p) setProfileState(JSON.parse(p));
@@ -47,6 +51,8 @@ export function useAppData() {
       if (d) { const v = JSON.parse(d); setCompletedDays(v); completedRef.current = v; }
       if (r) setReasons(JSON.parse(r));
       if (g) { const v = JSON.parse(g); setGratitude(v); gratitudeRef.current = v; }
+      if (vb) setVisionBoards(JSON.parse(vb));
+      if (af) setAffirmationFavs(JSON.parse(af));
     } catch (e) {
       console.error('[useAppData] loadAll failed:', e);
     }
@@ -104,6 +110,16 @@ export function useAppData() {
   const saveReasons = useCallback((r: string[]) => {
     setReasons(r);
     storageSet('reasons', JSON.stringify(r));
+  }, []);
+
+  const saveVisionBoards = useCallback((boards: VisionBoard[]) => {
+    setVisionBoards(boards);
+    storageSet('visionBoards', JSON.stringify(boards));
+  }, []);
+
+  const saveAffirmationFavs = useCallback((favs: AffirmationFavorite[]) => {
+    setAffirmationFavs(favs);
+    storageSet('affirmationFavs', JSON.stringify(favs));
   }, []);
 
   const addGratitude = useCallback((entry: GratitudeEntry) => {
@@ -178,8 +194,10 @@ export function useAppData() {
 
   return {
     loaded, profile, journal, cravings, sleep, thoughts, activities,
-    completedDays, reasons, gratitude,
+    completedDays, reasons, gratitude, visionBoards, affirmationFavs,
     saveProfile, saveJournal, addCraving, addSleep, addThought, addActivity,
-    toggleDay, saveReasons, addGratitude, deleteEntry, getSoberStats, getHeatmapData, reload: loadAll,
+    toggleDay, saveReasons, addGratitude, deleteEntry, getSoberStats, getHeatmapData,
+    saveVisionBoards, saveAffirmationFavs,
+    reload: loadAll,
   };
 }

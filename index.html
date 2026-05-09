@@ -1,47 +1,14 @@
 <!DOCTYPE html>
-<html lang="en" style="height: 100%;">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0d9488" />
     <title>The Journey Forward</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-      html, body, #root {
-        height: 100%;
-      }
-      body {
-        /* Inter via system-ui stack — no external font requests */
-        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont,
-                     'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        background-color: #f1f5f9; /* slate-100 */
-      }
-      /* Custom scrollbar for chat */
-      .custom-scrollbar::-webkit-scrollbar {
-        width: 6px;
-      }
-      .custom-scrollbar::-webkit-scrollbar-track {
-        background: transparent;
-      }
-      .custom-scrollbar::-webkit-scrollbar-thumb {
-        background-color: #cbd5e1; /* slate-300 */
-        border-radius: 20px;
-        border: 3px solid transparent;
-      }
-      
-      /* Animation Utilities */
-      @keyframes fade-in {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-      .animate-fade-in {
-        animation: fade-in 0.5s ease-out forwards;
-      }
-    </style>
-<link rel="stylesheet" href="/index.css">
-</head>
-  <body style="height: 100%;">
-    <div id="root" style="height: 100%;"></div>
+  </head>
+  <body>
+    <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

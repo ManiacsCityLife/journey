@@ -2,6 +2,9 @@
 	"appId": "com.journeyforward.app",
 	"appName": "Journey Forward",
 	"webDir": "dist",
+	"server": {
+		"androidScheme": "https"
+	},
 	"android": {},
 	"plugins": {
 		"LocalNotifications": {

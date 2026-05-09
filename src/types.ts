@@ -11,14 +11,26 @@ export interface UserProfile {
   savingsGoal?: number;
   savingsGoalName?: string;
   weeklyGoals?: string[];
+  /** @deprecated kept for migration — use lockMethod */
   biometricEnabled?: boolean;
+  /** Authentication required to open the app */
+  lockMethod?: 'none' | 'biometric' | 'pin';
   notificationSettings?: {
     motivations: boolean;
     reminders: boolean;
     milestones: boolean;
     morningTime: string;  // "HH:MM"
     eveningTime: string;  // "HH:MM"
+    /** How often to send daily nudges. We auto-decay from 'gentle' → 'light' →
+     *  'minimal' as the user's sober days grow, on the principle that the
+     *  earliest weeks need the most support. */
+    frequency?: 'gentle' | 'light' | 'minimal' | 'auto';
   };
+  /** Milestone notification IDs (days) we've already fired. Prevents the
+   *  "you've saved R50!" notification firing on every cold-launch. */
+  firedMilestoneDays?: number[];
+  /** Savings-tier amounts (e.g. 50, 100, 250…) we've already fired. */
+  firedSavingsTiers?: number[];
 }
 
 export interface JournalEntry {
@@ -73,7 +85,38 @@ export interface GratitudeEntry {
   text: string;
 }
 
+export interface VisionItem {
+  id: string;
+  /** JPEG data URL (from canvas.toDataURL) */
+  image: string;
+  caption?: string;
+  createdAt: number;
+}
+
+export interface VisionSection {
+  id: string;
+  title: string;
+  /** Tailwind background class for the section header */
+  color: string;
+  items: VisionItem[];
+}
+
+export interface VisionBoard {
+  id: string;
+  name: string;
+  createdAt: number;
+  sections: VisionSection[];
+}
+
+export interface AffirmationFavorite {
+  id: string;        // matches the curated affirmation id, or 'custom_xxx' for user-added
+  text: string;
+  category?: string;
+  custom?: boolean;
+  addedAt: number;
+}
+
 export type Screen =
   | 'home' | 'progress' | 'emergency' | 'journal' | 'buddy'
   | 'heatmap' | 'settings' | 'backup' | 'milestone'
-  | 'recovery' | 'insights' | 'puzzle' | 'cbt' | 'history';
+  | 'recovery' | 'insights' | 'puzzle' | 'cbt' | 'history' | 'groups';
