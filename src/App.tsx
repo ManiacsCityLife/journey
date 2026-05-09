@@ -16,9 +16,11 @@ import CBTScreen from './components/CBTScreen';
 import HistoryScreen from './components/HistoryScreen';
 import JournalScreen from './components/JournalScreen';
 import RecoveryGroupsScreen from './components/RecoveryGroupsScreen';
+import SlipScreen, { SlipLogScreen } from './components/SlipScreen';
 import type { Screen, UserProfile } from './types';
 import './index.css';
 import { IconHome, IconProgress, IconHeart, IconJournal, IconProfile, IconShield, IconWind, IconLeaf, IconBrain, IconWave, IconChat, IconRun, IconMoon, IconMilestone, IconBody, IconPuzzle, IconCompass, IconCloud, IconTimer, IconPhone, IconTarget, IconChevron, IconHistory, IconGratitude,
+  IconReset,
   // Calm icon set
   IconWalk, IconCup, IconSun, IconBook, IconNote, IconSeedling, IconTeapot, IconBath, IconClean, IconBalance, IconSparkles, IconHands, IconPalette, IconGarden, IconBookmark, IconCalendar, IconHourglass, IconFootprint, IconWaveHand, IconBubble, IconLaughter, IconLight, IconBell, IconTea, IconAffirm, IconShieldLock, IconWifiOff, IconLock, IconKey, IconCopy
 } from './components/Icons';
@@ -1864,6 +1866,72 @@ function SecuritySection({ profile, setProfile, saveProfile }: {
   );
 }
 
+// ── Recovery Section (Profile) ─────────────────────────────────────────────
+// Shows the user's full recovery story (current streak, best ever, lifetime
+// total, slips logged) and provides the entry points for recording a slip
+// or reading the slip log. Designed to feel supportive, not clinical.
+function RecoverySection({ data, onNavigate }: {
+  data: ReturnType<typeof useAppData>;
+  onNavigate: (s: Screen | 'motivation' | 'weeklygoals' | 'history') => void;
+}) {
+  const stats = data.getRecoveryStats();
+  const isFirstStreak = stats.slipCount === 0;
+
+  return (
+    <section className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="p-5 border-b border-gray-50">
+        <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Your Journey</h2>
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <div className="text-2xl font-serif font-light text-teal-700 tabular-nums">{stats.currentStreak}</div>
+            <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mt-0.5">Current</div>
+            <div className="text-[10px] text-slate-400">{stats.currentStreak === 1 ? 'day' : 'days'}</div>
+          </div>
+          <div>
+            <div className="text-2xl font-serif font-light text-teal-700 tabular-nums">{stats.bestStreak}</div>
+            <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mt-0.5">Best ever</div>
+            <div className="text-[10px] text-slate-400">{stats.bestStreak === 1 ? 'day' : 'days'}</div>
+          </div>
+          <div>
+            <div className="text-2xl font-serif font-light text-teal-700 tabular-nums">{stats.lifetimeSoberDays}</div>
+            <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mt-0.5">Lifetime</div>
+            <div className="text-[10px] text-slate-400">sober days</div>
+          </div>
+        </div>
+        {!isFirstStreak && (
+          <div className="text-slate-500 text-xs mt-3 italic leading-relaxed">
+            {stats.slipCount} slip{stats.slipCount === 1 ? '' : 's'} logged. Each one is a teacher, not a verdict.
+          </div>
+        )}
+      </div>
+
+      <button onClick={() => onNavigate('slip' as Screen)}
+        className="w-full px-5 py-4 flex items-center text-left hover:bg-slate-50 active:bg-slate-100 transition-colors border-b border-gray-50">
+        <div className="w-9 h-9 rounded-full bg-rose-50 flex items-center justify-center text-rose-500 mr-3">
+          <IconHeart size={18}/>
+        </div>
+        <div className="flex-1">
+          <div className="font-semibold text-slate-800 text-sm">I had a slip</div>
+          <div className="text-slate-500 text-xs">Record it gently — your data and history all stay.</div>
+        </div>
+        <IconChevron size={18} color="#cbd5e1"/>
+      </button>
+
+      <button onClick={() => onNavigate('sliplog' as Screen)}
+        className="w-full px-5 py-4 flex items-center text-left hover:bg-slate-50 active:bg-slate-100 transition-colors">
+        <div className="w-9 h-9 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 mr-3">
+          <IconBookmark size={18}/>
+        </div>
+        <div className="flex-1">
+          <div className="font-semibold text-slate-800 text-sm">Slip log</div>
+          <div className="text-slate-500 text-xs">{stats.slipCount === 0 ? 'Empty so far.' : `${stats.slipCount} entr${stats.slipCount === 1 ? 'y' : 'ies'} — read your past notes`}</div>
+        </div>
+        <IconChevron size={18} color="#cbd5e1"/>
+      </button>
+    </section>
+  );
+}
+
 // ── Profile Screen ─────────────────────────────────────────────────────────────
 const DEFAULT_NS = { motivations: false, reminders: false, milestones: false, morningTime: '08:00', eveningTime: '19:00' };
 function ProfileScreen({ data, onNavigate }: { data: ReturnType<typeof useAppData>; onNavigate: (s: Screen|'motivation'|'weeklygoals'|'history') => void }) {
@@ -1942,6 +2010,9 @@ function ProfileScreen({ data, onNavigate }: { data: ReturnType<typeof useAppDat
             </div>
           </div>
         </section>
+
+        {/* Recovery — current/best/lifetime + slip log + record-a-slip */}
+        <RecoverySection data={data} onNavigate={onNavigate}/>
 
         {/* Edit form — shown only when Edit Details is tapped */}
         {showEdit && (
@@ -2142,29 +2213,35 @@ function ProfileScreen({ data, onNavigate }: { data: ReturnType<typeof useAppDat
 
         {/* Danger Zone */}
         <div className="mt-4 pt-6 border-t border-gray-200">
-          <h3 className="text-lg font-bold text-center text-rose-600 mb-3">Danger Zone</h3>
+          <h3 className="text-xs font-bold text-center text-slate-400 uppercase tracking-wider mb-3">Danger Zone</h3>
+          <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 mb-3 text-amber-800 text-xs leading-relaxed">
+            <strong className="font-semibold">If you had a slip,</strong> use <em>I had a slip</em> in your journey card above — it keeps your data and your history. The button below is only for a clean wipe.
+          </div>
           <button onClick={()=>setShowReset(true)}
             className="w-full bg-rose-50 border border-rose-200 text-rose-600 p-4 rounded-2xl flex items-center text-left hover:bg-rose-100 transition-colors active:scale-95">
-            <span className="text-xl mr-4">🔄</span>
+            <div className="w-9 h-9 rounded-full bg-rose-100 flex items-center justify-center mr-3 flex-shrink-0">
+              <IconReset size={18} color="#e11d48"/>
+            </div>
             <div>
-              <span className="font-semibold block">Reset Progress</span>
-              <span className="text-sm text-rose-500">This will permanently delete all your data.</span>
+              <span className="font-semibold block">Erase All Data</span>
+              <span className="text-sm text-rose-500">Permanently delete everything — journal, vision board, streak, slips. Cannot be undone.</span>
             </div>
           </button>
         </div>
 
         <div className="text-center text-xs text-gray-400 pb-4">
-          <p>Journey Forward · Version 5.6</p>
+          <p>Journey Forward · Version 5.7</p>
         </div>
 
         {showReset && (
-          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-6">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-6">
             <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-xl space-y-4">
-              <div className="text-gray-800 text-lg font-bold text-center">Are you sure?</div>
-              <p className="text-gray-500 text-sm text-center">This will permanently delete all your data including your streak, journal, and logs. This cannot be undone.</p>
+              <div className="text-slate-900 text-lg font-bold text-center">Erase everything?</div>
+              <p className="text-slate-600 text-sm text-center leading-relaxed">This permanently deletes <strong>everything</strong>: your streak, journal, vision board, slip log, gratitude entries — all of it. There is no recovery from this.</p>
+              <p className="text-slate-500 text-xs text-center italic">If you slipped, please use <em>I had a slip</em> instead — that preserves your story.</p>
               <div className="grid grid-cols-2 gap-3">
-                <button onClick={()=>setShowReset(false)} className="py-3 rounded-xl bg-gray-100 text-gray-700 font-semibold">Cancel</button>
-                <button onClick={resetAll} className="py-3 rounded-xl bg-red-500 text-white font-semibold">Yes, Reset</button>
+                <button onClick={()=>setShowReset(false)} className="py-3 rounded-xl bg-slate-100 text-slate-700 font-semibold">Cancel</button>
+                <button onClick={resetAll} className="py-3 rounded-xl bg-rose-500 text-white font-semibold">Yes, erase</button>
               </div>
             </div>
           </div>
@@ -2412,6 +2489,18 @@ export default function App() {
   if (screen==='puzzle') return <PuzzleScreen onBack={()=>setScreen('home')} completedDays={data.completedDays} onToggleDay={data.toggleDay}/>;
   if (screen==='cbt') return <CBTScreen onBack={()=>setScreen('home')}/>;
   if (screen==='groups') return <RecoveryGroupsScreen onBack={()=>setScreen('settings')}/>;
+  if (screen==='slip' && data.profile) return <SlipScreen
+    currentSoberDate={data.profile.soberDate}
+    onConfirm={async (slipData) => {
+      await data.recordSlip(slipData);
+      setScreen('settings');
+    }}
+    onCancel={()=>setScreen('settings')}/>;
+  if (screen==='sliplog') return <SlipLogScreen
+    slips={data.slips}
+    onBack={()=>setScreen('settings')}
+    onDelete={data.deleteSlip}
+    onUpdateReflection={data.updateSlipReflection}/>;
 
   // Settings sub-screens
   if (screen==='settings' && subScreen==='motivation') return <MyMotivation

@@ -108,6 +108,32 @@ export interface VisionBoard {
   sections: VisionSection[];
 }
 
+/**
+ * A "slip" — a drinking event recorded after a sober streak.
+ *
+ * Critically, recording a slip does NOT erase the user's data. It captures
+ * the date, what triggered it, and what they learned, then resets only the
+ * sober-date counter. Previous streaks become part of the user's recovery
+ * story (best-streak, lifetime sober days), not a deletion.
+ */
+export interface Slip {
+  id: string;
+  /** ISO timestamp of when the slip happened */
+  timestamp: string;
+  /** Sober date that was active before this slip */
+  previousSoberDate: string;
+  /** Length of the streak that ended */
+  previousStreakDays: number;
+  /** Free-text trigger description */
+  trigger?: string;
+  /** Tag selections (Stress, Alone, Social, HALT, etc.) */
+  triggerTags?: string[];
+  /** What the user was feeling */
+  feeling?: string;
+  /** Reflection: what they'd do differently next time */
+  reflection?: string;
+}
+
 export interface AffirmationFavorite {
   id: string;        // matches the curated affirmation id, or 'custom_xxx' for user-added
   text: string;
@@ -119,4 +145,5 @@ export interface AffirmationFavorite {
 export type Screen =
   | 'home' | 'progress' | 'emergency' | 'journal' | 'buddy'
   | 'heatmap' | 'settings' | 'backup' | 'milestone'
-  | 'recovery' | 'insights' | 'puzzle' | 'cbt' | 'history' | 'groups';
+  | 'recovery' | 'insights' | 'puzzle' | 'cbt' | 'history' | 'groups'
+  | 'slip' | 'sliplog';

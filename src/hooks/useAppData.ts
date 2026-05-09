@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { storageGet, storageSet } from '../utils/storage';
-import type { UserProfile, JournalEntry, CravingLog, SleepLog, ThoughtLog, ActivityLog, DailyHeatmapEntry, GratitudeEntry, VisionBoard, AffirmationFavorite } from '../types';
+import type { UserProfile, JournalEntry, CravingLog, SleepLog, ThoughtLog, ActivityLog, DailyHeatmapEntry, GratitudeEntry, VisionBoard, AffirmationFavorite, Slip } from '../types';
 
 export function useAppData() {
   const [profile, setProfileState] = useState<UserProfile | null>(null);
@@ -14,6 +14,7 @@ export function useAppData() {
   const [gratitude, setGratitude] = useState<GratitudeEntry[]>([]);
   const [visionBoards, setVisionBoards] = useState<VisionBoard[]>([]);
   const [affirmationFavs, setAffirmationFavs] = useState<AffirmationFavorite[]>([]);
+  const [slips, setSlips] = useState<Slip[]>([]);
   const [loaded, setLoaded] = useState(false);
 
   // Refs keep latest value in sync for writes that fire in quick succession
@@ -23,12 +24,13 @@ export function useAppData() {
   const sleepRef      = useRef<SleepLog[]>([]);
   const completedRef  = useRef<number[]>([]);
   const gratitudeRef  = useRef<GratitudeEntry[]>([]);
+  const slipsRef      = useRef<Slip[]>([]);
 
   useEffect(() => { loadAll(); }, []);
 
   async function loadAll() {
     try {
-      const [p, j, c, s, t, a, d, r, g, vb, af] = await Promise.all([
+      const [p, j, c, s, t, a, d, r, g, vb, af, sl] = await Promise.all([
         storageGet('profile'),
         storageGet('journal'),
         storageGet('cravings'),
@@ -39,7 +41,8 @@ export function useAppData() {
         storageGet('reasons'),
         storageGet('gratitude'),
         storageGet('visionBoards'),
-        storageGet('affirmationFavs')
+        storageGet('affirmationFavs'),
+        storageGet('slips'),
       ]);
 
       if (p) setProfileState(JSON.parse(p));
@@ -53,6 +56,7 @@ export function useAppData() {
       if (g) { const v = JSON.parse(g); setGratitude(v); gratitudeRef.current = v; }
       if (vb) setVisionBoards(JSON.parse(vb));
       if (af) setAffirmationFavs(JSON.parse(af));
+      if (sl) { const v = JSON.parse(sl); setSlips(v); slipsRef.current = v; }
     } catch (e) {
       console.error('[useAppData] loadAll failed:', e);
     }
@@ -121,6 +125,89 @@ export function useAppData() {
     setAffirmationFavs(favs);
     storageSet('affirmationFavs', JSON.stringify(favs));
   }, []);
+
+  /**
+   * Record a slip — preserves all journal/log data, snapshots the previous
+   * streak as part of the user's recovery story, and resets only the sober
+   * date counter so the user can start counting again from this moment.
+   *
+   * Also clears `firedMilestoneDays` and `firedSavingsTiers` so milestone
+   * notifications fire again on the new streak (1 day, 7 days, etc.).
+   */
+  const recordSlip = useCallback(async (data: {
+    timestamp: string;
+    trigger?: string;
+    triggerTags?: string[];
+    feeling?: string;
+    reflection?: string;
+  }): Promise<void> => {
+    if (!profile) return;
+    const previousSoberDate = profile.soberDate;
+    const slipMs = new Date(data.timestamp).getTime();
+    const startMs = new Date(previousSoberDate).getTime();
+    const previousStreakDays = isFinite(slipMs) && isFinite(startMs)
+      ? Math.max(0, Math.floor((slipMs - startMs) / 86400000))
+      : 0;
+
+    const slip: Slip = {
+      id: 'slip_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+      timestamp: data.timestamp,
+      previousSoberDate,
+      previousStreakDays,
+      trigger: data.trigger,
+      triggerTags: data.triggerTags,
+      feeling: data.feeling,
+      reflection: data.reflection,
+    };
+
+    const nextSlips = [slip, ...slipsRef.current];
+    slipsRef.current = nextSlips;
+    setSlips(nextSlips);
+    await storageSet('slips', JSON.stringify(nextSlips));
+
+    const updated: UserProfile = {
+      ...profile,
+      soberDate: data.timestamp,
+      firedMilestoneDays: [],
+      firedSavingsTiers: [],
+    };
+    setProfileState(updated);
+    await storageSet('profile', JSON.stringify(updated));
+  }, [profile]);
+
+  const deleteSlip = useCallback((id: string) => {
+    const next = slipsRef.current.filter(s => s.id !== id);
+    slipsRef.current = next;
+    setSlips(next);
+    storageSet('slips', JSON.stringify(next));
+  }, []);
+
+  const updateSlipReflection = useCallback((id: string, reflection: string) => {
+    const next = slipsRef.current.map(s => s.id === id ? { ...s, reflection } : s);
+    slipsRef.current = next;
+    setSlips(next);
+    storageSet('slips', JSON.stringify(next));
+  }, []);
+
+  /**
+   * Composed recovery stats: current streak + previous streaks + lifetime
+   * total. Best streak treats "current" as a candidate too — if you're now
+   * past your previous best, that should be reflected.
+   */
+  const getRecoveryStats = useCallback(() => {
+    const stats = profile?.soberDate
+      ? Math.max(0, Math.floor((Date.now() - new Date(profile.soberDate).getTime()) / 86400000))
+      : 0;
+    const previousStreaks = slips.map(s => s.previousStreakDays);
+    const bestStreak = Math.max(stats, ...previousStreaks, 0);
+    const lifetimeSoberDays = stats + previousStreaks.reduce((sum, d) => sum + d, 0);
+    return {
+      currentStreak: stats,
+      bestStreak,
+      lifetimeSoberDays,
+      slipCount: slips.length,
+    };
+  }, [profile, slips]);
 
   const addGratitude = useCallback((entry: GratitudeEntry) => {
     // One entry per day — replace if exists for today
@@ -194,10 +281,11 @@ export function useAppData() {
 
   return {
     loaded, profile, journal, cravings, sleep, thoughts, activities,
-    completedDays, reasons, gratitude, visionBoards, affirmationFavs,
+    completedDays, reasons, gratitude, visionBoards, affirmationFavs, slips,
     saveProfile, saveJournal, addCraving, addSleep, addThought, addActivity,
     toggleDay, saveReasons, addGratitude, deleteEntry, getSoberStats, getHeatmapData,
     saveVisionBoards, saveAffirmationFavs,
+    recordSlip, deleteSlip, updateSlipReflection, getRecoveryStats,
     reload: loadAll,
   };
 }
