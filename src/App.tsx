@@ -16,6 +16,7 @@ import HistoryScreen from './components/HistoryScreen';
 import JournalScreen from './components/JournalScreen';
 import RecoveryGroupsScreen from './components/RecoveryGroupsScreen';
 import CrisisScreen from './components/CrisisScreen';
+import PrivacyPolicyScreen from './components/PrivacyPolicyScreen';
 import SlipScreen, { SlipLogScreen } from './components/SlipScreen';
 import type { Screen, UserProfile } from './types';
 import './index.css';
@@ -1461,7 +1462,15 @@ function HomeScreen({ data, onNavigate }: { data: ReturnType<typeof useAppData>;
     const ts = new Date().toISOString();
     if (type==='craving') await data.addCraving({id:ts,timestamp:ts,intensity:d.intensity,duration:d.duration||0,trigger:(d.triggers||[]).join(', '),overcome:true});
     else if (type==='thought') { const ILABELS: Record<number,string>={2:'Brief',4:'Mild',6:'Moderate',8:'Strong',10:'Consuming'}; const iLabel=ILABELS[d.intensity]||'Moderate'; const trig=(d.triggers||[]).length>0?' · Triggers: '+d.triggers.join(', '):''; const nt=d.notes?' — '+d.notes:''; await data.addThought({id:ts,timestamp:ts,type:'negative',text:iLabel+' thought'+trig+nt}); }
-    else if (type==='activity') await data.addActivity({id:ts,timestamp:ts,activity:`${d.activity} — ${d.duration}min${d.distance?' · '+d.distance+d.unit:''}`});
+    else if (type==='activity') await data.addActivity({
+      id: ts,
+      timestamp: ts,
+      activity: d.activity,
+      duration: typeof d.duration === 'number' ? d.duration : undefined,
+      distance: d.distance ? parseFloat(d.distance) : undefined,
+      unit: d.unit,
+      notes: d.notes || undefined,
+    });
     else if (type==='sleep') await data.addSleep({id:ts,date:today,hours:d.hours+(d.minutes||0)/60,quality:d.quality});
   }
 
@@ -1980,7 +1989,7 @@ function VoiceCard() {
 // or reading the slip log. Designed to feel supportive, not clinical.
 function RecoverySection({ data, onNavigate }: {
   data: ReturnType<typeof useAppData>;
-  onNavigate: (s: Screen | 'motivation' | 'weeklygoals' | 'history' | 'crisis') => void;
+  onNavigate: (s: Screen | 'motivation' | 'weeklygoals' | 'history' | 'crisis' | 'privacy') => void;
 }) {
   const stats = data.getRecoveryStats();
   const isFirstStreak = stats.slipCount === 0;
@@ -2042,7 +2051,7 @@ function RecoverySection({ data, onNavigate }: {
 
 // ── Profile Screen ─────────────────────────────────────────────────────────────
 const DEFAULT_NS = { motivations: false, reminders: false, milestones: false, morningTime: '08:00', eveningTime: '19:00' };
-function ProfileScreen({ data, onNavigate }: { data: ReturnType<typeof useAppData>; onNavigate: (s: Screen|'motivation'|'weeklygoals'|'history'|'crisis') => void }) {
+function ProfileScreen({ data, onNavigate }: { data: ReturnType<typeof useAppData>; onNavigate: (s: Screen|'motivation'|'weeklygoals'|'history'|'crisis'|'privacy') => void }) {
   const [profile, setProfile] = useState(data.profile);
   const [showReset, setShowReset] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
@@ -2085,6 +2094,7 @@ function ProfileScreen({ data, onNavigate }: { data: ReturnType<typeof useAppDat
     {icon:<IconHands size={22} color='#0d9488'/>,label:'Recovery Groups',action:()=>onNavigate('groups')},
     {icon:<IconCloud size={22} color='#4a82a8'/>,label:'Backup & Restore',action:()=>onNavigate('backup')},
     {icon:<IconMilestone size={22} color='#b07840'/>,label:'Milestone Cards',action:()=>onNavigate('milestone')},
+    {icon:<IconShieldLock size={22} color='#0d9488'/>,label:'Privacy Policy',action:()=>onNavigate('privacy')},
   ];
 
   return (
@@ -2342,7 +2352,7 @@ function ProfileScreen({ data, onNavigate }: { data: ReturnType<typeof useAppDat
         </div>
 
         <div className="text-center text-xs text-gray-400 pb-4">
-          <p>Journey Forward · Version 5.7</p>
+          <p>Journey Forward · Version 1.0</p>
         </div>
 
         {showReset && (
@@ -2712,6 +2722,7 @@ export default function App() {
   if (screen==='cbt') return <CBTScreen onBack={()=>setScreen('home')}/>;
   if (screen==='groups') return <RecoveryGroupsScreen onBack={()=>setScreen('settings')}/>;
   if (screen==='crisis') return <CrisisScreen onBack={()=>setScreen('settings')}/>;
+  if (screen==='privacy') return <PrivacyPolicyScreen onBack={()=>setScreen('settings')}/>;
   if (screen==='slip' && data.profile) return <SlipScreen
     currentSoberDate={data.profile.soberDate}
     onConfirm={async (slipData) => {

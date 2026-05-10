@@ -68,12 +68,19 @@ export default function HistoryScreen({ cravings, thoughts, activities, sleep, j
     });
 
     activities.forEach(a => {
+      // Compose a friendly detail line from the structured fields. Falls back
+      // to the raw activity string for legacy entries that still have
+      // duration/distance baked into the activity field.
+      const parts = [a.activity];
+      if (typeof a.duration === 'number') parts.push(`${a.duration} min`);
+      if (typeof a.distance === 'number' && a.unit) parts.push(`${a.distance} ${a.unit}`);
+      if (a.notes) parts.push(a.notes);
       entries.push({
         id: a.id, type: 'exercise',
         date: a.timestamp.split('T')[0],
         timestamp: a.timestamp,
         title: `Exercise`,
-        detail: a.activity,
+        detail: parts.join(' · '),
       });
     });
 

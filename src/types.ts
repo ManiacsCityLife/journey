@@ -68,8 +68,16 @@ export interface ThoughtLog {
 export interface ActivityLog {
   id: string;
   timestamp: string;
+  /** Pure activity name (e.g. "Running") — no duration concatenated in. */
   activity: string;
+  /** Minutes */
   duration?: number;
+  /** Optional distance reading */
+  distance?: number;
+  /** Distance unit */
+  unit?: 'km' | 'miles';
+  /** Free-text notes */
+  notes?: string;
 }
 
 export interface DailyHeatmapEntry {
@@ -146,4 +154,4 @@ export type Screen =
   | 'home' | 'progress' | 'emergency' | 'journal'
   | 'heatmap' | 'settings' | 'backup' | 'milestone'
   | 'recovery' | 'insights' | 'puzzle' | 'cbt' | 'history' | 'groups'
-  | 'slip' | 'sliplog' | 'crisis';
+  | 'slip' | 'sliplog' | 'crisis' | 'privacy';

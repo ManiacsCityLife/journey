@@ -430,6 +430,7 @@ function JournalWriter({ username, initial, onSave, onCancel }: {
   const [mood, setMood] = useState<1|2|3|4|5>(initial?.mood || 3);
   const [recording, setRecording] = useState(false);
   const [recSeconds, setRecSeconds] = useState(0);
+  const [showMicDisclosure, setShowMicDisclosure] = useState(false);
   const recTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const moodEmoji = ['😢','😟','😐','🙂','😊'];
   const moodLabels = ['Awful','Low','Okay','Good','Great'];
@@ -441,28 +442,49 @@ function JournalWriter({ username, initial, onSave, onCancel }: {
     if (recTimerRef.current) clearInterval(recTimerRef.current);
   }, []);
 
+  // Begins recording — actually requests permission and starts the recogniser.
+  async function beginRecording() {
+    setRecSeconds(0);
+    recTimerRef.current = setInterval(() => setRecSeconds(s => s + 1), 1000);
+    const ok = await startListening(
+      partial => setText(partial),
+      final => setText(final),
+      () => {
+        setRecording(false);
+        if (recTimerRef.current) { clearInterval(recTimerRef.current); recTimerRef.current = null; }
+      },
+      { initialText: text }
+    );
+    if (ok) setRecording(true);
+    else {
+      if (recTimerRef.current) { clearInterval(recTimerRef.current); recTimerRef.current = null; }
+      alert('Voice recording is not available on this device.');
+    }
+  }
+
+  // Mic-button handler — gates the first-ever start with a disclosure modal
+  // so we satisfy Google Play's "prominent disclosure" rule for sensitive
+  // permissions. After the user accepts once, subsequent taps go straight
+  // through.
   async function toggleRecord() {
     if (recording) {
       await stopListening();
-      // onEnd handler clears recording state
-    } else {
-      setRecSeconds(0);
-      recTimerRef.current = setInterval(() => setRecSeconds(s => s + 1), 1000);
-      const ok = await startListening(
-        partial => setText(partial),
-        final => setText(final),
-        () => {
-          setRecording(false);
-          if (recTimerRef.current) { clearInterval(recTimerRef.current); recTimerRef.current = null; }
-        },
-        { initialText: text }
-      );
-      if (ok) setRecording(true);
-      else {
-        if (recTimerRef.current) { clearInterval(recTimerRef.current); recTimerRef.current = null; }
-        alert('Voice recording is not available on this device.');
-      }
+      return;
     }
+    const { storageGet } = await import('../utils/storage');
+    const seen = await storageGet('micDisclosureSeen');
+    if (seen) {
+      await beginRecording();
+    } else {
+      setShowMicDisclosure(true);
+    }
+  }
+
+  async function acceptMicDisclosure() {
+    const { storageSet } = await import('../utils/storage');
+    await storageSet('micDisclosureSeen', '1');
+    setShowMicDisclosure(false);
+    await beginRecording();
   }
 
   function fmtTime(s: number) {
@@ -535,6 +557,41 @@ function JournalWriter({ username, initial, onSave, onCancel }: {
           {recording ? 'Tap stop when you\'re done — keeps listening through pauses.' : 'Tap to dictate — speak as long as you like.'}
         </p>
       </div>
+
+      {/* Microphone disclosure (Google Play prominent-disclosure requirement) */}
+      {showMicDisclosure && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-5">
+          <div className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-xl">
+            <div className="p-5 space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center text-2xl">🎤</div>
+                <h3 className="text-slate-800 font-bold text-base">Microphone access</h3>
+              </div>
+              <p className="text-slate-600 text-sm leading-relaxed">
+                Voice journaling uses your phone's microphone <strong>only while you're recording</strong>.
+              </p>
+              <ul className="text-slate-600 text-xs leading-relaxed space-y-1.5 pl-4 list-disc">
+                <li>Speech is converted to text by your phone's built-in recognition engine.</li>
+                <li>Audio is <strong>not recorded or saved</strong> — only the recognised text appears in your entry.</li>
+                <li>Nothing is uploaded. Everything stays on your device.</li>
+              </ul>
+              <p className="text-slate-500 text-xs italic">
+                After you tap Allow, Android will show its own permission prompt.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 border-t border-slate-100">
+              <button onClick={() => setShowMicDisclosure(false)}
+                className="py-3.5 text-slate-600 font-semibold text-sm border-r border-slate-100">
+                Not now
+              </button>
+              <button onClick={acceptMicDisclosure}
+                className="py-3.5 text-teal-600 font-semibold text-sm">
+                Allow microphone
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
