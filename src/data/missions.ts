@@ -1,0 +1,61 @@
+// ── 50 Daily Missions ─────────────────────────────────────────────────────────
+// Each mission is tagged with a calm-icon category instead of a colourful
+// emoji — keeps the visual language quiet and consistent.
+export type MissionCat =
+  | 'walk' | 'connect' | 'read' | 'water' | 'breathe' | 'write' | 'meal'
+  | 'sleep' | 'move' | 'tidy' | 'sun' | 'music' | 'book' | 'create'
+  | 'mindful' | 'tea' | 'gratitude' | 'goal' | 'photo' | 'rest'
+  | 'reflect' | 'reward' | 'home' | 'nature' | 'celebrate';
+
+export const MISSION_POOL: { id: string; cat: MissionCat; text: string }[] = [
+  { id: 'm1',  cat: 'walk',     text: 'Go for a 10-minute walk outside' },
+  { id: 'm2',  cat: 'connect',  text: 'Text or call a friend or family member' },
+  { id: 'm3',  cat: 'read',     text: 'Read one of your reasons to quit' },
+  { id: 'm4',  cat: 'water',    text: 'Drink 3 glasses of water today' },
+  { id: 'm5',  cat: 'breathe',  text: 'Do 5 minutes of deep breathing' },
+  { id: 'm6',  cat: 'gratitude',text: "Write one thing you're grateful for today" },
+  { id: 'm7',  cat: 'meal',     text: 'Eat a healthy meal without skipping' },
+  { id: 'm8',  cat: 'sleep',    text: 'Be in bed by 10pm tonight' },
+  { id: 'm9',  cat: 'move',     text: 'Do 10 minutes of physical exercise' },
+  { id: 'm10', cat: 'tidy',     text: 'Tidy one area of your home' },
+  { id: 'm11', cat: 'sun',      text: 'Step outside and get some fresh air' },
+  { id: 'm12', cat: 'connect',  text: 'Share how you’re feeling with someone you trust' },
+  { id: 'm13', cat: 'music',    text: 'Listen to music that lifts your mood' },
+  { id: 'm14', cat: 'write',    text: 'Write a journal entry, even just two lines' },
+  { id: 'm15', cat: 'connect',  text: 'Do something kind for someone else today' },
+  { id: 'm16', cat: 'mindful',  text: 'Complete a CBT exercise in your toolkit' },
+  { id: 'm17', cat: 'nature',   text: 'Spend 10 minutes in a green space or park' },
+  { id: 'm18', cat: 'mindful',  text: 'Take a 1-hour break from social media' },
+  { id: 'm19', cat: 'tidy',     text: 'Take a shower and get fully dressed today' },
+  { id: 'm20', cat: 'reflect',  text: 'Say one positive affirmation out loud' },
+  { id: 'm21', cat: 'tea',      text: 'Make yourself a calming herbal tea' },
+  { id: 'm22', cat: 'sun',      text: 'Watch the sunrise or sunset today' },
+  { id: 'm23', cat: 'book',     text: 'Read 10 pages of a book' },
+  { id: 'm24', cat: 'create',   text: 'Do something creative — draw, doodle, colour' },
+  { id: 'm25', cat: 'goal',     text: 'Do something that scares you just a little' },
+  { id: 'm26', cat: 'write',    text: 'Write a short letter to your future sober self' },
+  { id: 'm27', cat: 'mindful',  text: 'Spend 5 minutes in quiet meditation or prayer' },
+  { id: 'm28', cat: 'meal',     text: 'Eat one piece of fruit or vegetable extra today' },
+  { id: 'm29', cat: 'goal',     text: 'Set one small goal for tomorrow and write it down' },
+  { id: 'm30', cat: 'breathe',  text: 'Try urge surfing — ride a craving without acting on it' },
+  { id: 'm31', cat: 'move',     text: 'Do 20 minutes of any physical activity you enjoy' },
+  { id: 'm32', cat: 'photo',    text: 'Take a photo of something beautiful today' },
+  { id: 'm33', cat: 'move',     text: 'Do 10 push-ups or sit-ups' },
+  { id: 'm34', cat: 'connect',  text: 'Tell someone you trust how your recovery is going' },
+  { id: 'm35', cat: 'reflect',  text: 'Do one thing today your sober self would be proud of' },
+  { id: 'm36', cat: 'connect',  text: 'Ask for help with something — don’t do it alone' },
+  { id: 'm37', cat: 'create',   text: 'Watch something that makes you laugh out loud' },
+  { id: 'm38', cat: 'create',   text: 'Play a game — puzzle, cards, phone game' },
+  { id: 'm39', cat: 'read',     text: 'Learn one new fact about alcohol recovery today' },
+  { id: 'm40', cat: 'rest',     text: "Take a 20-minute nap if you're tired — rest is recovery" },
+  { id: 'm41', cat: 'reflect',  text: 'Identify one trigger today and write down how to handle it' },
+  { id: 'm42', cat: 'reward',   text: 'Set a daily reminder to check in with yourself' },
+  { id: 'm43', cat: 'reward',   text: 'Buy yourself a small treat — something non-alcoholic' },
+  { id: 'm44', cat: 'home',     text: 'Spend quality time at home doing something you enjoy' },
+  { id: 'm45', cat: 'reflect',  text: 'Repeat your primary reason to stay sober 3 times today' },
+  { id: 'm46', cat: 'nature',   text: 'Walk barefoot on grass for 5 minutes — grounding exercise' },
+  { id: 'm47', cat: 'breathe',  text: 'Complete the urge survival timer in the Emergency Kit' },
+  { id: 'm48', cat: 'gratitude',text: 'Write down 3 things that went well today before bed' },
+  { id: 'm49', cat: 'connect',  text: 'Give someone a genuine compliment today' },
+  { id: 'm50', cat: 'celebrate',text: 'Remind yourself: I am proud of how far I have come' },
+];
