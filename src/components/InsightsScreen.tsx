@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { IconWave, IconChat, IconMoon, IconRun } from './Icons';
+import BackButton from './BackButton';
 import type { CravingLog, SleepLog, ThoughtLog, ActivityLog } from '../types';
 
 interface Props {
@@ -149,7 +150,7 @@ export default function InsightsScreen({ cravings, thoughts, sleep, activities, 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       <div className="bg-white border-b border-slate-100 px-4 py-4 flex items-center gap-3 flex-shrink-0">
-        <button onClick={onBack} className="text-slate-400 text-xl leading-none">‹</button>
+        <BackButton onClick={onBack} />
         <div>
           <div className="text-slate-800 font-bold">Insights</div>
           <div className="text-slate-400 text-xs">Your patterns · stays on device</div>

@@ -1,18 +1,31 @@
 // Offline TTS: tries Capacitor's native plugin first, then Web Speech.
-// Picks the best installed voice (neural/WaveNet > enhanced > Google > default).
+// Picks the best installed voice; user installs neural pack via Android settings.
 
+// Android Google TTS voice naming (worth recognising):
+//   en-us-x-iol-network   ← neural ("network" voices, work offline if downloaded)
+//   en-us-x-sfg-local     ← classic offline
+//   en-us-x-tpd-local     ← compact offline
 function scoreVoice(name: string, lang: string): number {
   const n = name.toLowerCase();
-  if (/neural|wavenet/.test(n)) return 5;
-  if (/enhanced|premium/.test(n)) return 4;
-  if (/natural/.test(n)) return 3;
+  // Highest tier — neural / network voices on Android, WaveNet on Google Cloud
+  if (/neural|wavenet|network/.test(n)) return 6;
+  // Premium / enhanced packs (iOS/macOS naming)
+  if (/enhanced|premium/.test(n)) return 5;
+  // "Natural" voices (Microsoft / some Android skins)
+  if (/natural/.test(n)) return 4;
+  // Google's "x-" voice families on Android — generally better than the basic
+  if (/-x-/.test(n) && lang.startsWith('en')) return 3;
+  // Any explicitly Google voice in English
   if (n.includes('google') && lang.startsWith('en')) return 2;
-  if (/samantha|karen|moira|daniel/.test(n)) return 2;
+  // Classic named voices (macOS/iOS)
+  if (/samantha|karen|moira|daniel|alex|fiona/.test(n)) return 2;
+  // Any English voice
   if (lang.startsWith('en')) return 1;
   return 0;
 }
 
 let capVoiceIdx: number | undefined;
+let capVoiceName: string | undefined;
 let capVoicesLoaded = false;
 
 async function bestCapacitorVoice(): Promise<number | undefined> {
@@ -28,11 +41,24 @@ async function bestCapacitorVoice(): Promise<number | undefined> {
       const s = scoreVoice(v.name, v.lang);
       if (s > bestScore) { bestScore = s; best = i; }
     });
-    capVoiceIdx = best >= 0 ? best : undefined;
+    if (best >= 0) {
+      capVoiceIdx = best;
+      capVoiceName = voices[best]?.name;
+    }
   } catch {
     // plugin not available
   }
   return capVoiceIdx;
+}
+
+/** Best-effort name of the voice currently in use. Empty until first speak. */
+export function getActiveVoiceName(): string {
+  if (capVoiceName) return capVoiceName;
+  if ('speechSynthesis' in window) {
+    const v = bestWebVoice();
+    if (v) return v.name;
+  }
+  return 'Default';
 }
 
 function bestWebVoice(): SpeechSynthesisVoice | null {

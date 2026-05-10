@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { generateMilestoneCard, shareMilestoneCard, getMilestoneForDay } from '../utils/milestoneCard';
+import BackButton from './BackButton';
 import type { UserProfile } from '../types';
 
 interface MilestoneScreenProps {
@@ -85,7 +86,7 @@ export default function MilestoneScreen({ profile, soberDays, moneySaved, onBack
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       <div className="flex items-center gap-3 px-4 py-4 bg-white border-b border-slate-100">
-        <button onClick={onBack} className="text-slate-400 text-xl">←</button>
+        <BackButton onClick={onBack} />
         <div className="text-slate-800 font-bold">Milestones</div>
       </div>
 

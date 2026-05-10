@@ -1,5 +1,6 @@
 import { IconBody, IconChevron } from './Icons';
 import { useState, useEffect } from 'react';
+import BackButton from './BackButton';
 
 interface Props { soberDays: number; soberHours: number; onBack: () => void; }
 
@@ -295,7 +296,7 @@ export default function RecoveryTimeline({ soberDays, soberHours, onBack }: Prop
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       <div className="flex items-center gap-3 px-4 py-4 bg-white border-b border-slate-100">
-        <button onClick={onBack} className="text-slate-400 text-xl">←</button>
+        <BackButton onClick={onBack} />
         <div className="flex-1">
           <div className="flex items-center gap-2"><IconBody size={18} color="#059669"/><span className="text-slate-800 font-bold">Body Recovery Timeline</span></div>
           <div className="text-teal-600 text-xs font-mono font-semibold">

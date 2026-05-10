@@ -22,6 +22,7 @@ import ForestVisual from './components/ForestVisual';
 import MissionIcon from './components/MissionIcon';
 import LockScreen from './components/LockScreen';
 import SafetyModal from './components/SafetyModal';
+import BackButton from './components/BackButton';
 import { getDailyQuote } from './data/quotes';
 import { MISSION_POOL, type MissionCat } from './data/missions';
 import { CURRENCIES } from './data/currencies';
@@ -1435,11 +1436,16 @@ function VoiceCard() {
   const [rate, setRateState] = useState(0.78);
   const [open, setOpen] = useState(false);
   const [opened, setOpened] = useState(false);
+  const [voiceName, setVoiceName] = useState('—');
+  const [testing, setTesting] = useState(false);
 
   useEffect(() => {
     (async () => {
-      const { getTTSRate } = await import('./utils/tts');
+      const { getTTSRate, getActiveVoiceName, speak, stopSpeaking } = await import('./utils/tts');
       setRateState(await getTTSRate());
+      // Trigger a silent probe so the active voice is resolved
+      try { await speak(' '); await stopSpeaking(); } catch {}
+      setVoiceName(getActiveVoiceName());
     })();
   }, []);
 
@@ -1453,6 +1459,15 @@ function VoiceCard() {
     setOpened(true);
     const { openTTSSettings } = await import('./utils/tts');
     await openTTSSettings();
+  }
+
+  async function handleTest() {
+    if (testing) return;
+    setTesting(true);
+    const { speak, getActiveVoiceName } = await import('./utils/tts');
+    await speak("This is your current voice. If it sounds robotic, install a high quality voice pack from Android settings.");
+    setVoiceName(getActiveVoiceName());
+    setTesting(false);
   }
 
   const speedLabel = rate < 0.65 ? 'Very slow' : rate < 0.85 ? 'Normal' : rate < 1.05 ? 'Fast' : 'Very fast';
@@ -1480,6 +1495,18 @@ function VoiceCard() {
             installing a <strong>neural voice pack</strong> from your phone's settings makes it
             sound much more natural, with no internet needed afterward.
           </p>
+
+          {/* Currently active voice + test */}
+          <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center gap-3">
+            <div className="flex-1 min-w-0">
+              <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Currently using</div>
+              <div className="text-slate-700 text-xs font-mono truncate">{voiceName}</div>
+            </div>
+            <button onClick={handleTest} disabled={testing}
+              className={`px-4 py-2 rounded-lg text-xs font-semibold transition-colors ${testing ? 'bg-slate-200 text-slate-500' : 'bg-violet-600 text-white active:bg-violet-700'}`}>
+              {testing ? 'Playing…' : 'Test voice'}
+            </button>
+          </div>
 
           {/* Open TTS settings button */}
           <button onClick={handleOpenSettings}
@@ -2138,7 +2165,7 @@ export default function App() {
   if (screen==='settings' && subScreen==='weeklygoals') return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       <div className="bg-white border-b border-slate-100 px-4 py-4 flex items-center gap-3">
-        <button onClick={()=>{setSubScreen('');setScreen('settings');}} className="text-slate-400 text-xl leading-none">‹</button>
+        <BackButton onClick={()=>{setSubScreen('');setScreen('settings');}} />
         <div>
           <div className="text-slate-800 font-bold">Weekly Goals</div>
           <div className="text-slate-400 text-xs">Track your weekly commitments</div>

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import BackButton from './BackButton';
 import type { DailyHeatmapEntry } from '../types';
 
 interface HeatmapProps {
@@ -85,7 +86,7 @@ export default function Heatmap({ data, soberDate, onBack }: HeatmapProps) {
     <div className="min-h-screen bg-slate-950 flex flex-col">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-4 border-b border-slate-800">
-        <button onClick={onBack} className="text-slate-400 text-lg">←</button>
+        <BackButton onClick={onBack} className="text-slate-400" />
         <div className="flex-1">
           <div className="text-white font-semibold">Activity Heatmap</div>
           <div className="text-slate-400 text-xs">Cravings & thoughts logged</div>

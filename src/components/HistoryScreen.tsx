@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import type { CravingLog, ThoughtLog, ActivityLog, SleepLog, JournalEntry, GratitudeEntry } from '../types';
-import { IconChevron, IconWave, IconChat, IconRun, IconMoon, IconJournal, IconGratitude, IconSearch, IconTrash } from './Icons';
+import { IconWave, IconChat, IconRun, IconMoon, IconJournal, IconGratitude, IconSearch, IconTrash } from './Icons';
+import BackButton from './BackButton';
 
 type FilterType = 'all'|'cravings'|'thoughts'|'exercise'|'sleep'|'journal'|'gratitude';
 
@@ -222,9 +223,7 @@ export default function HistoryScreen({ cravings, thoughts, activities, sleep, j
     <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* Header */}
       <div className="bg-white border-b border-slate-100 px-4 py-4 flex items-center gap-3">
-        <button onClick={onBack} className="w-8 h-8 flex items-center justify-center">
-          <IconChevron size={20} color="#94a3b8" className="rotate-180"/>
-        </button>
+        <BackButton onClick={onBack} className="text-slate-400" />
         <div>
           <div className="text-slate-800 font-bold">My History</div>
           <div className="text-slate-400 text-xs">{allEntries.length} total entries</div>

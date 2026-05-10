@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { storageSet, storageGet, storageKeys } from '../utils/storage';
-import { IconChevron, IconShare, IconCloud } from './Icons';
+import { IconShare, IconCloud } from './Icons';
+import BackButton from './BackButton';
 
 interface BackupScreenProps {
   onBack: () => void;
@@ -118,9 +119,7 @@ export default function BackupScreen({ onBack, onRestored }: BackupScreenProps) 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       <div className="bg-white border-b border-slate-100 px-4 py-4 flex items-center gap-3">
-        <button onClick={onBack} className="w-8 h-8 flex items-center justify-center text-slate-400">
-          <IconChevron size={20} color="#94a3b8" className="rotate-180"/>
-        </button>
+        <BackButton onClick={onBack} />
         <div>
           <div className="text-slate-800 font-bold">Backup & Restore</div>
           <div className="text-slate-400 text-xs">Your data, your control</div>
