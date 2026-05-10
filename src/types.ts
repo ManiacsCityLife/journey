@@ -146,4 +146,4 @@ export type Screen =
   | 'home' | 'progress' | 'emergency' | 'journal' | 'buddy'
   | 'heatmap' | 'settings' | 'backup' | 'milestone'
   | 'recovery' | 'insights' | 'puzzle' | 'cbt' | 'history' | 'groups'
-  | 'slip' | 'sliplog';
+  | 'slip' | 'sliplog' | 'crisis';

@@ -16,6 +16,7 @@ import CBTScreen from './components/CBTScreen';
 import HistoryScreen from './components/HistoryScreen';
 import JournalScreen from './components/JournalScreen';
 import RecoveryGroupsScreen from './components/RecoveryGroupsScreen';
+import CrisisScreen from './components/CrisisScreen';
 import SlipScreen, { SlipLogScreen } from './components/SlipScreen';
 import type { Screen, UserProfile } from './types';
 import './index.css';
@@ -1872,7 +1873,7 @@ function SecuritySection({ profile, setProfile, saveProfile }: {
 // or reading the slip log. Designed to feel supportive, not clinical.
 function RecoverySection({ data, onNavigate }: {
   data: ReturnType<typeof useAppData>;
-  onNavigate: (s: Screen | 'motivation' | 'weeklygoals' | 'history') => void;
+  onNavigate: (s: Screen | 'motivation' | 'weeklygoals' | 'history' | 'crisis') => void;
 }) {
   const stats = data.getRecoveryStats();
   const isFirstStreak = stats.slipCount === 0;
@@ -1934,7 +1935,7 @@ function RecoverySection({ data, onNavigate }: {
 
 // ── Profile Screen ─────────────────────────────────────────────────────────────
 const DEFAULT_NS = { motivations: false, reminders: false, milestones: false, morningTime: '08:00', eveningTime: '19:00' };
-function ProfileScreen({ data, onNavigate }: { data: ReturnType<typeof useAppData>; onNavigate: (s: Screen|'motivation'|'weeklygoals'|'history') => void }) {
+function ProfileScreen({ data, onNavigate }: { data: ReturnType<typeof useAppData>; onNavigate: (s: Screen|'motivation'|'weeklygoals'|'history'|'crisis') => void }) {
   const [profile, setProfile] = useState(data.profile);
   const [showReset, setShowReset] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
@@ -1973,6 +1974,7 @@ function ProfileScreen({ data, onNavigate }: { data: ReturnType<typeof useAppDat
     {icon:<IconCompass size={22} color='#0d9488'/>,label:'My Motivation',action:()=>onNavigate('motivation')},
     {icon:<IconTarget size={22} color='#7c3aed'/>,label:'Weekly Goals',action:()=>onNavigate('weeklygoals')},
     {icon:<IconHistory size={22} color='#0284c7'/>,label:'My History',action:()=>onNavigate('history')},
+    {icon:<IconPhone size={22} color='#e11d48'/>,label:'Crisis Lines',action:()=>onNavigate('crisis')},
     {icon:<IconHands size={22} color='#0d9488'/>,label:'Recovery Groups',action:()=>onNavigate('groups')},
     {icon:<IconCloud size={22} color='#4a82a8'/>,label:'Backup & Restore',action:()=>onNavigate('backup')},
     {icon:<IconMilestone size={22} color='#b07840'/>,label:'Milestone Cards',action:()=>onNavigate('milestone')},
@@ -2344,12 +2346,91 @@ function LockScreen({ method, onUnlocked }: { method: 'biometric' | 'pin'; onUnl
   );
 }
 
+// ── Safety Modal (first launch) ───────────────────────────────────────────────
+// Shown once — on the first time the main app renders after onboarding — to
+// flag the medical danger of sudden alcohol withdrawal and give quick access
+// to crisis lines.  A 'safetyDismissed' key is persisted so it never repeats.
+function SafetyModal({ onDismiss, onViewLines }: { onDismiss: () => void; onViewLines: () => void }) {
+  const quickLines = [
+    { flag: '🌐 US', number: '988', tel: '988' },
+    { flag: '🇬🇧 UK', number: '116 123', tel: '116123' },
+    { flag: '🇦🇺 AU', number: '13 11 14', tel: '131114' },
+    { flag: '🇿🇦 SA', number: '0800 456 789', tel: '0800456789' },
+    { flag: '🇨🇦 CA', number: '1-833-456-4566', tel: '18334564566' },
+  ];
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-end z-50">
+      <div className="bg-white rounded-t-3xl w-full max-w-md mx-auto overflow-y-auto max-h-[92vh]">
+        {/* drag pill */}
+        <div className="flex justify-center pt-3 pb-1">
+          <div className="w-10 h-1 bg-slate-200 rounded-full"/>
+        </div>
+        <div className="px-5 pb-6 space-y-4">
+          <div className="flex items-center gap-3 pt-1">
+            <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+              <IconShield size={20} color="#d97706"/>
+            </div>
+            <div>
+              <h2 className="text-slate-800 font-bold text-base">A note before you begin</h2>
+              <p className="text-slate-400 text-xs">Shown once. For your safety.</p>
+            </div>
+          </div>
+
+          {/* Withdrawal warning */}
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+            <p className="text-amber-900 font-semibold text-sm mb-1.5">Alcohol withdrawal can be dangerous</p>
+            <p className="text-amber-800 text-xs leading-relaxed">
+              If you've been drinking heavily every day and you stop suddenly, your body may react
+              with shaking, sweating, or anxiety — and in serious cases, <strong>seizures or
+              delirium tremens</strong>.
+            </p>
+            <p className="text-amber-800 text-xs leading-relaxed mt-2">
+              This is a medical reality, not a weakness. If you experience confusion,
+              hallucinations, or severe tremors after stopping, <strong>seek medical help
+              immediately</strong>. Tapering slowly with a doctor is safer than stopping cold.
+            </p>
+          </div>
+
+          {/* Quick crisis numbers */}
+          <div>
+            <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">If you need help right now</p>
+            <div className="space-y-1.5">
+              {quickLines.map(({ flag, number, tel }) => (
+                <div key={tel} className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2">
+                  <span className="text-slate-500 text-xs font-semibold w-16 shrink-0">{flag}</span>
+                  <span className="flex-1 text-slate-700 font-mono text-xs">{number}</span>
+                  <a href={`tel:${tel}`}
+                    className="bg-rose-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1">
+                    <IconPhone size={11} color="white"/>
+                    <span>Call</span>
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <button onClick={onViewLines}
+            className="w-full text-teal-600 text-sm font-semibold py-2 rounded-xl border border-teal-200 bg-teal-50 active:bg-teal-100 transition-colors">
+            View all crisis lines →
+          </button>
+
+          <button onClick={onDismiss}
+            className="w-full py-4 rounded-2xl bg-teal-600 text-white font-semibold text-base shadow-md shadow-teal-500/20 active:scale-[0.98] transition-transform">
+            Got it, I understand
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Root App ───────────────────────────────────────────────────────────────────
 export default function App() {
   const data = useAppData();
   const [screen, setScreen] = useState<Screen>('home');
   const [subScreen, setSubScreen] = useState<string>('');
   const [isLocked, setIsLocked] = useState(false);
+  const [showSafetyModal, setShowSafetyModal] = useState(false);
   const soberDays = useMemo(() => data.getSoberStats()?.days ?? 0, [data.profile?.soberDate]);
 
   // Resolve effective lock method (handles legacy biometricEnabled flag)
@@ -2367,6 +2448,24 @@ export default function App() {
       setIsLocked(true);
     }
   }, [data.loaded, lockMethod]);
+
+  // Show the safety modal once — after the first post-onboarding launch.
+  // We store a flag so it never fires again after dismissal.
+  useEffect(() => {
+    if (!data.loaded || !data.profile || isLocked) return;
+    (async () => {
+      const { storageGet } = await import('./utils/storage');
+      const seen = await storageGet('safetyDismissed');
+      if (!seen) setShowSafetyModal(true);
+    })();
+  }, [data.loaded, data.profile, isLocked]);
+
+  async function dismissSafetyModal(goCrisis = false) {
+    const { storageSet } = await import('./utils/storage');
+    await storageSet('safetyDismissed', '1');
+    setShowSafetyModal(false);
+    if (goCrisis) { setSubScreen(''); setScreen('crisis'); }
+  }
 
   // Scroll all internal scroll containers to the top whenever we navigate.
   // Without this, switching tabs preserves the previous screen's scroll
@@ -2489,6 +2588,7 @@ export default function App() {
   if (screen==='puzzle') return <PuzzleScreen onBack={()=>setScreen('home')} completedDays={data.completedDays} onToggleDay={data.toggleDay}/>;
   if (screen==='cbt') return <CBTScreen onBack={()=>setScreen('home')}/>;
   if (screen==='groups') return <RecoveryGroupsScreen onBack={()=>setScreen('settings')}/>;
+  if (screen==='crisis') return <CrisisScreen onBack={()=>setScreen('settings')}/>;
   if (screen==='slip' && data.profile) return <SlipScreen
     currentSoberDate={data.profile.soberDate}
     onConfirm={async (slipData) => {
@@ -2541,6 +2641,12 @@ export default function App() {
   );
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col max-w-md mx-auto">
+      {showSafetyModal && (
+        <SafetyModal
+          onDismiss={() => dismissSafetyModal(false)}
+          onViewLines={() => dismissSafetyModal(true)}
+        />
+      )}
       <div className="flex-1 overflow-hidden" style={{paddingBottom:'72px'}}>
         {screen==='home' && <HomeScreen data={data} onNavigate={navigate}/>}
         {screen==='progress' && <ProgressScreen
