@@ -2352,7 +2352,7 @@ function ProfileScreen({ data, onNavigate }: { data: ReturnType<typeof useAppDat
         </div>
 
         <div className="text-center text-xs text-gray-400 pb-4">
-          <p>Journey Forward · Version 1.0</p>
+          <p>Journey Forward · Version 1.0.1</p>
         </div>
 
         {showReset && (

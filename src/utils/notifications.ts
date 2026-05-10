@@ -67,14 +67,19 @@ function addMinutes(t: { hour: number; minute: number }, mins: number): { hour: 
   return { hour: Math.floor(total / 60) % 24, minute: total % 60 };
 }
 
-function pick<T>(arr: T[]): T {
+/**
+ * Deterministic pick — picks the same item on the same day regardless of
+ * how many times scheduleAll() runs. Without this, opening the app twice on
+ * the same day would re-roll tomorrow's notification text, which feels random
+ * and jittery to users.
+ *
+ * `offset` lets us pick a *different* deterministic item for evening vs.
+ * morning notifications on the same day.
+ */
+function pickByDay<T>(arr: T[], offset = 0): T {
   if (!arr.length) return '' as unknown as T;
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-
-function pickDifferent<T>(arr: T[], exclude: T): T {
-  const filtered = arr.filter(x => x !== exclude);
-  return pick(filtered.length > 0 ? filtered : arr);
+  const day = Math.floor(Date.now() / 86400000);
+  return arr[(day + offset) % arr.length];
 }
 
 export async function requestPermission(): Promise<boolean> {
@@ -143,8 +148,8 @@ export async function scheduleAll(profile: UserProfile, motivations: string[]): 
 
     // ── Motivations ──
     if (settings.motivations && motivations.length > 0) {
-      const morningMot = pick(motivations);
-      const eveningMot = pickDifferent(motivations, morningMot);
+      const morningMot = pickByDay(motivations, 0);
+      const eveningMot = pickByDay(motivations, Math.max(1, Math.floor(motivations.length / 2)));
 
       if (freq === 'minimal') {
         notifications.push({
@@ -186,7 +191,7 @@ export async function scheduleAll(profile: UserProfile, motivations: string[]): 
         notifications.push({
           id: 3,
           title: 'Journey Forward',
-          body: pick(REMINDER_MORNING),
+          body: pickByDay(REMINDER_MORNING),
           schedule: { at: nextMinimal(morningR.hour, morningR.minute) } as any,
           smallIcon: 'ic_stat_icon',
           channelId: 'journey',
@@ -195,7 +200,7 @@ export async function scheduleAll(profile: UserProfile, motivations: string[]): 
         notifications.push({
           id: 3,
           title: 'Journey Forward',
-          body: pick(REMINDER_MORNING),
+          body: pickByDay(REMINDER_MORNING),
           schedule: { on: { hour: morningR.hour, minute: morningR.minute }, repeats: true, every: 'day' },
           smallIcon: 'ic_stat_icon',
           channelId: 'journey',
@@ -204,7 +209,7 @@ export async function scheduleAll(profile: UserProfile, motivations: string[]): 
           notifications.push({
             id: 4,
             title: 'Journey Forward',
-            body: pick(REMINDER_EVENING),
+            body: pickByDay(REMINDER_EVENING, 2),
             schedule: { on: { hour: eveningR.hour, minute: eveningR.minute }, repeats: true, every: 'day' },
             smallIcon: 'ic_stat_icon',
             channelId: 'journey',
