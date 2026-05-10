@@ -1866,60 +1866,35 @@ function SecuritySection({ profile, setProfile, saveProfile }: {
   );
 }
 
-// ── ElevenLabs Voice Card ─────────────────────────────────────────────────
-// Self-contained — reads/writes the 'elevenLabsKey' and 'elevenLabsVoice'
-// storage keys directly (no prop threading needed).
-function ElevenLabsCard() {
-  const [key, setKey] = useState('');
-  const [savedKey, setSavedKey] = useState<string | null>(null);
-  const [voice, setVoice] = useState('21m00Tcm4TlvDq8ikWAM');
+// ── Voice Card (Profile) ──────────────────────────────────────────────────
+// Fully offline — opens Android TTS settings so the user can install a
+// neural voice pack, and exposes a speaking-speed slider.
+// Nothing leaves the device.
+function VoiceCard() {
+  const [rate, setRateState] = useState(0.78);
   const [open, setOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [status, setStatus] = useState('');
+  const [opened, setOpened] = useState(false);
 
   useEffect(() => {
     (async () => {
-      const { storageGet } = await import('./utils/storage');
-      const k = await storageGet('elevenLabsKey');
-      const v = await storageGet('elevenLabsVoice');
-      if (k) { setSavedKey(k); setKey(k); }
-      if (v) setVoice(v);
+      const { getTTSRate } = await import('./utils/tts');
+      setRateState(await getTTSRate());
     })();
   }, []);
 
-  async function save() {
-    if (!key.trim()) return;
-    setSaving(true);
-    const { storageSet } = await import('./utils/storage');
-    const { clearTTSCache } = await import('./utils/tts');
-    await storageSet('elevenLabsKey', key.trim());
-    await storageSet('elevenLabsVoice', voice);
-    clearTTSCache();
-    setSavedKey(key.trim());
-    setSaving(false);
-    setStatus('Saved!');
-    window.setTimeout(() => setStatus(''), 2000);
+  async function handleRate(val: number) {
+    setRateState(val);
+    const { setTTSRate } = await import('./utils/tts');
+    await setTTSRate(val);
   }
 
-  async function clear() {
-    const { storageRemove } = await import('./utils/storage');
-    const { clearTTSCache } = await import('./utils/tts');
-    await storageRemove('elevenLabsKey');
-    await storageRemove('elevenLabsVoice');
-    clearTTSCache();
-    setSavedKey(null);
-    setKey('');
-    setVoice('21m00Tcm4TlvDq8ikWAM');
+  async function handleOpenSettings() {
+    setOpened(true);
+    const { openTTSSettings } = await import('./utils/tts');
+    await openTTSSettings();
   }
 
-  const VOICES = [
-    { id: '21m00Tcm4TlvDq8ikWAM', name: 'Rachel  —  warm & clear (recommended)' },
-    { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Bella  —  soft & soothing' },
-    { id: 'AZnzlk1XvdvUeBnXmlld', name: 'Domi  —  strong & confident' },
-    { id: 'ErXwobaYiN019PkySvjV', name: 'Antoni  —  calm male' },
-    { id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam  —  deep male' },
-    { id: 'TxGEqnHWrfWFTfGW9XjX', name: 'Josh  —  warm male' },
-  ];
+  const speedLabel = rate < 0.65 ? 'Very slow' : rate < 0.85 ? 'Normal' : rate < 1.05 ? 'Fast' : 'Very fast';
 
   return (
     <section className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -1930,9 +1905,7 @@ function ElevenLabsCard() {
         </div>
         <div className="flex-1">
           <div className="font-semibold text-slate-800 text-sm">Voice & TTS</div>
-          <div className="text-slate-500 text-xs">
-            {savedKey ? 'ElevenLabs active — human-quality voice' : 'Using device voice (robotic on most phones)'}
-          </div>
+          <div className="text-slate-500 text-xs">Fully on-device — nothing leaves your phone</div>
         </div>
         <div className={`text-slate-400 transition-transform ${open ? 'rotate-90' : ''}`}>
           <IconChevron size={18} color="#94a3b8"/>
@@ -1941,52 +1914,59 @@ function ElevenLabsCard() {
 
       {open && (
         <div className="border-t border-slate-50 px-5 pb-5 space-y-4">
-          {/* Current status */}
-          <div className={`rounded-xl p-3 text-xs leading-relaxed ${savedKey ? 'bg-emerald-50 border border-emerald-100 text-emerald-800' : 'bg-slate-50 border border-slate-200 text-slate-600'}`}>
-            {savedKey
-              ? <>✓ ElevenLabs key active. Affirmations and TTS will use your chosen voice. <strong>Internet required for playback.</strong></>
-              : 'No ElevenLabs key set. The app uses your phone\'s built-in voice, which sounds robotic on most devices.'}
+          <p className="text-slate-600 text-sm leading-relaxed">
+            Audio is generated entirely on your device. The default Android voice is robotic —
+            installing a <strong>neural voice pack</strong> from your phone's settings makes it
+            sound much more natural, with no internet needed afterward.
+          </p>
+
+          {/* Open TTS settings button */}
+          <button onClick={handleOpenSettings}
+            className="w-full flex items-center gap-3 bg-teal-50 border border-teal-200 rounded-xl px-4 py-3.5 text-left active:bg-teal-100 transition-colors">
+            <div className="flex-1">
+              <div className="text-teal-800 font-semibold text-sm">
+                {opened ? '↗ TTS settings opened' : 'Install a better voice'}
+              </div>
+              <div className="text-teal-600 text-xs mt-0.5">
+                Opens Android Text-to-Speech settings — look for <em>high quality</em> or <em>neural</em> packs
+              </div>
+            </div>
+            <IconChevron size={16} color="#0d9488"/>
+          </button>
+
+          {/* Step-by-step instructions */}
+          <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-1">
+            <p className="text-slate-600 text-xs font-semibold mb-1.5">What to do once settings open:</p>
+            {[
+              'Tap Google Text-to-Speech Engine',
+              'Tap "Install voice data"',
+              'Find your language → tap ★ High quality',
+              'Download and set as default',
+            ].map((step, i) => (
+              <div key={i} className="flex items-start gap-2">
+                <span className="text-teal-500 font-bold text-xs w-4 shrink-0">{i + 1}.</span>
+                <span className="text-slate-600 text-xs">{step}</span>
+              </div>
+            ))}
           </div>
 
-          {/* Privacy notice */}
-          <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 text-xs text-amber-800 leading-relaxed">
-            <strong>Privacy note:</strong> ElevenLabs is an external service. When you play affirmations or journal prompts, the text is sent to ElevenLabs' servers using your key. If you prefer fully offline, leave this blank.
-          </div>
-
-          {/* Voice picker */}
+          {/* Speed control */}
           <div>
-            <label className="text-slate-500 text-xs font-medium block mb-1.5">Voice</label>
-            <select value={voice} onChange={e => setVoice(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-3 py-3 text-sm outline-none focus:ring-1 focus:ring-violet-500">
-              {VOICES.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
-            </select>
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-slate-700 text-sm font-medium">Speaking speed</span>
+              <span className="text-teal-600 text-sm font-semibold">{speedLabel}</span>
+            </div>
+            <input type="range" min={0.5} max={1.4} step={0.05} value={rate}
+              onChange={e => handleRate(parseFloat(e.target.value))}
+              className="w-full accent-teal-500"/>
+            <div className="flex justify-between text-slate-400 text-[10px] mt-1">
+              <span>Slower</span>
+              <span>Faster</span>
+            </div>
           </div>
 
-          {/* API key input */}
-          <div>
-            <label className="text-slate-500 text-xs font-medium block mb-1.5">
-              ElevenLabs API key
-              <span className="ml-1 text-slate-400">(get yours free at elevenlabs.io)</span>
-            </label>
-            <input
-              type="password" autoComplete="off"
-              value={key}
-              onChange={e => setKey(e.target.value)}
-              placeholder="sk-..."
-              className="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 rounded-xl px-3 py-3 text-sm outline-none focus:ring-1 focus:ring-violet-500 font-mono"/>
-          </div>
-
-          <div className="flex gap-2">
-            <button onClick={save} disabled={!key.trim() || saving}
-              className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-colors ${status ? 'bg-emerald-500 text-white' : 'bg-violet-600 text-white disabled:bg-slate-200 disabled:text-slate-400'}`}>
-              {status || (saving ? 'Saving…' : 'Save key')}
-            </button>
-            {savedKey && (
-              <button onClick={clear}
-                className="px-4 py-3 rounded-xl text-sm font-semibold bg-rose-50 text-rose-600 border border-rose-200">
-                Clear
-              </button>
-            )}
+          <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 text-emerald-800 text-xs leading-relaxed">
+            🔒 <strong>Zero network calls.</strong> All TTS runs entirely on your device. No text is ever sent anywhere.
           </div>
         </div>
       )}
@@ -2341,7 +2321,7 @@ function ProfileScreen({ data, onNavigate }: { data: ReturnType<typeof useAppDat
         </section>
 
         {/* Voice Settings */}
-        <ElevenLabsCard/>
+        <VoiceCard/>
 
         {/* Danger Zone */}
         <div className="mt-4 pt-6 border-t border-gray-200">
@@ -2577,6 +2557,20 @@ export default function App() {
       setIsLocked(true);
     }
   }, [data.loaded, lockMethod]);
+
+  // One-shot migration: remove any ElevenLabs keys that may have been stored
+  // during the brief period it was available. The feature is gone; leaving
+  // orphaned keys in storage would be misleading.
+  useEffect(() => {
+    if (!data.loaded) return;
+    (async () => {
+      const { storageGet, storageRemove } = await import('./utils/storage');
+      if (await storageGet('elevenLabsKey')) {
+        await storageRemove('elevenLabsKey');
+        await storageRemove('elevenLabsVoice');
+      }
+    })();
+  }, [data.loaded]);
 
   // Show the safety modal once — after the first post-onboarding launch.
   // We store a flag so it never fires again after dismissal.

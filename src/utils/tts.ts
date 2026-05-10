@@ -1,139 +1,156 @@
 /**
- * Unified TTS — three tiers in priority order:
+ * Fully offline TTS — two tiers, no network calls ever.
  *
- *  1. ElevenLabs (if the user has saved their API key)
- *     → human-quality, requires internet, sends text to ElevenLabs servers.
- *     The user opts in explicitly and provides their own key.
+ *  Tier 1 — Capacitor native TTS (device engine, smart voice selection)
+ *  Tier 2 — Web Speech API fallback
  *
- *  2. @capacitor-community/text-to-speech (Capacitor plugin)
- *     → uses the device's native TTS engine — no internet, decent quality on
- *     modern Android with Google TTS or Samsung Voice installed.
+ *  Both tiers probe installed voices and score them so the best available
+ *  neural/WaveNet pack wins automatically.
  *
- *  3. Web Speech API — last-resort fallback when the plugin isn't available.
+ *  Rate is user-adjustable and persisted under 'ttsRate' in storage.
  *
- * The key is stored in Preferences under 'elevenLabsKey'. Because tts.ts
- * reads it here, callers (JournalScreen, etc.) need no changes when the user
- * adds or removes the key.
+ * ── Piper WASM upgrade path ────────────────────────────────────────────────
+ *  When we're ready to bundle a ~60 MB ONNX voice model, add a Tier 0 here:
+ *    const audio = await piperSpeak(text);   // all in-process, no net
+ *    audio.play(); return;
+ *  until then, a properly installed Google TTS neural pack (downloaded once
+ *  from Android Settings → Accessibility → Text-to-speech) is the best
+ *  offline quality available.
  */
 
-// ── ElevenLabs voice catalogue ─────────────────────────────────────────────
-export const ELEVENLABS_VOICES: { id: string; name: string }[] = [
-  { id: '21m00Tcm4TlvDq8ikWAM', name: 'Rachel  —  warm & clear (recommended)' },
-  { id: 'AZnzlk1XvdvUeBnXmlld', name: 'Domi  —  strong & confident' },
-  { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Bella  —  soft & soothing' },
-  { id: 'ErXwobaYiN019PkySvjV', name: 'Antoni  —  calm male' },
-  { id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam  —  deep male' },
-  { id: 'TxGEqnHWrfWFTfGW9XjX', name: 'Josh  —  warm male' },
-];
-
-export const DEFAULT_ELEVENLABS_VOICE = '21m00Tcm4TlvDq8ikWAM';
-
-// ── In-memory credential cache ─────────────────────────────────────────────
-// 'undefined' = not yet loaded; 'null' = loaded but absent; string = the key
-let _cachedKey: string | null | undefined = undefined;
-let _cachedVoice: string = DEFAULT_ELEVENLABS_VOICE;
-let _currentAudio: HTMLAudioElement | null = null;
-
-/** Call this whenever the user saves or clears an ElevenLabs key. */
-export function clearTTSCache(): void {
-  _cachedKey = undefined;
-  _cachedVoice = DEFAULT_ELEVENLABS_VOICE;
+// ── Voice scoring ──────────────────────────────────────────────────────────
+function scoreVoice(name: string, lang: string): number {
+  const n = name.toLowerCase();
+  // Neural / WaveNet packs — dramatically better quality
+  if (/neural|wavenet/.test(n)) return 5;
+  // Enhanced / premium packs
+  if (/enhanced|premium/.test(n)) return 4;
+  // "Natural" in name
+  if (/natural/.test(n)) return 3;
+  // Google voice in English
+  if (n.includes('google') && lang.startsWith('en')) return 2;
+  // Classic named voices (macOS/iOS emulated)
+  if (/samantha|karen|moira|daniel/.test(n)) return 2;
+  // Any English voice
+  if (lang.startsWith('en')) return 1;
+  return 0;
 }
 
-async function loadCredentials(): Promise<{ key: string; voice: string } | null> {
-  if (_cachedKey === undefined) {
-    try {
-      const { storageGet } = await import('./storage');
-      _cachedKey = await storageGet('elevenLabsKey') || null;
-      _cachedVoice = await storageGet('elevenLabsVoice') || DEFAULT_ELEVENLABS_VOICE;
-    } catch {
-      _cachedKey = null;
-    }
-  }
-  return _cachedKey ? { key: _cachedKey, voice: _cachedVoice } : null;
+// ── Capacitor TTS voice cache ──────────────────────────────────────────────
+let _capVoiceIdx: number | undefined = undefined;
+let _capVoicesLoaded = false;
+
+async function bestCapacitorVoice(): Promise<number | undefined> {
+  if (_capVoicesLoaded) return _capVoiceIdx;
+  _capVoicesLoaded = true;
+  try {
+    const { TextToSpeech } = await import('@capacitor-community/text-to-speech');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = await (TextToSpeech as any).getSupportedVoices();
+    const voices: { name: string; lang: string }[] = result?.voices ?? [];
+    let best = -1;
+    let bestScore = -1;
+    voices.forEach((v, i) => {
+      const s = scoreVoice(v.name, v.lang);
+      if (s > bestScore) { bestScore = s; best = i; }
+    });
+    _capVoiceIdx = best >= 0 ? best : undefined;
+  } catch { /* plugin absent */ }
+  return _capVoiceIdx;
 }
 
-// ── ElevenLabs fetch ───────────────────────────────────────────────────────
-async function speakElevenLabs(text: string, key: string, voiceId: string): Promise<void> {
-  const res = await fetch(
-    `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
-    {
-      method: 'POST',
-      headers: { 'xi-api-key': key, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        text,
-        model_id: 'eleven_turbo_v2_5',
-        voice_settings: { stability: 0.45, similarity_boost: 0.75 },
-      }),
-    },
+// ── Web Speech voice selection ─────────────────────────────────────────────
+function bestWebVoice(): SpeechSynthesisVoice | null {
+  if (!('speechSynthesis' in window)) return null;
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices.length) return null;
+  return voices.reduce<SpeechSynthesisVoice>((best, v) =>
+    scoreVoice(v.name, v.lang) > scoreVoice(best.name, best.lang) ? v : best,
+    voices[0],
   );
-  if (!res.ok) throw new Error(`ElevenLabs HTTP ${res.status}`);
-  const blob = await res.blob();
-  const url  = URL.createObjectURL(blob);
-  return new Promise((resolve, reject) => {
-    const audio = new Audio(url);
-    _currentAudio = audio;
-    audio.onended = () => { URL.revokeObjectURL(url); _currentAudio = null; resolve(); };
-    audio.onerror = () => { URL.revokeObjectURL(url); _currentAudio = null; reject(new Error('audio playback failed')); };
-    audio.play().catch(e => { URL.revokeObjectURL(url); _currentAudio = null; reject(e); });
-  });
 }
 
-// ── Web Speech fallback ────────────────────────────────────────────────────
-function speakWebSpeech(text: string, rate: number, pitch: number): Promise<void> {
-  return new Promise(resolve => {
-    if (!('speechSynthesis' in window)) { resolve(); return; }
-    window.speechSynthesis.cancel();
-    const utt = new SpeechSynthesisUtterance(text);
-    utt.rate = rate; utt.pitch = pitch; utt.volume = 1;
-    // Prefer a neural/natural voice if available
-    const voices = window.speechSynthesis.getVoices();
-    const preferred = voices.find(v =>
-      v.name.includes('Samantha') ||
-      v.name.includes('Karen')    ||
-      v.name.includes('Moira')    ||
-      v.name.includes('Google')   ||
-      /neural|natural|premium/i.test(v.name)
-    );
-    if (preferred) utt.voice = preferred;
-    utt.onend  = () => resolve();
-    utt.onerror = () => resolve();
-    window.speechSynthesis.speak(utt);
-  });
+// ── Rate preference ────────────────────────────────────────────────────────
+let _cachedRate: number | undefined;
+
+export async function getTTSRate(): Promise<number> {
+  if (_cachedRate !== undefined) return _cachedRate;
+  try {
+    const { storageGet } = await import('./storage');
+    const r = await storageGet('ttsRate');
+    _cachedRate = r ? parseFloat(r) : 0.78;
+  } catch {
+    _cachedRate = 0.78;
+  }
+  return _cachedRate;
+}
+
+export async function setTTSRate(rate: number): Promise<void> {
+  _cachedRate = rate;
+  try {
+    const { storageSet } = await import('./storage');
+    await storageSet('ttsRate', String(rate));
+  } catch { /* storage unavailable */ }
+}
+
+// ── Open Android TTS settings ──────────────────────────────────────────────
+export async function openTTSSettings(): Promise<void> {
+  try {
+    const { TextToSpeech } = await import('@capacitor-community/text-to-speech');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (TextToSpeech as any).openInstall();
+  } catch (e) {
+    console.warn('[tts] openInstall not available on this platform:', e);
+  }
 }
 
 // ── Public API ─────────────────────────────────────────────────────────────
 
-/**
- * Speak `text` using the best available engine.
- * Callers don't need to know which tier is active — just call speak().
- */
-export async function speak(text: string, rate = 0.82, pitch = 0.9): Promise<void> {
-  // Tier 1: ElevenLabs
-  const creds = await loadCredentials();
-  if (creds) {
-    try {
-      await speakElevenLabs(text, creds.key, creds.voice);
-      return;
-    } catch (e) {
-      console.warn('[tts] ElevenLabs failed, falling back to device TTS:', e);
-    }
-  }
+export async function speak(text: string): Promise<void> {
+  const rate  = await getTTSRate();
+  const pitch = 0.92;
 
-  // Tier 2: Capacitor native TTS (device engine)
+  // Tier 1 — Capacitor native TTS
   try {
     const { TextToSpeech } = await import('@capacitor-community/text-to-speech');
-    await TextToSpeech.speak({ text, lang: 'en-US', rate, pitch, volume: 1.0, category: 'ambient' });
+    const voiceIdx = await bestCapacitorVoice();
+    await TextToSpeech.speak({
+      text,
+      lang: 'en-US',
+      rate,
+      pitch,
+      volume: 1.0,
+      category: 'ambient',
+      ...(voiceIdx !== undefined && { voice: voiceIdx }),
+    });
     return;
-  } catch { /* plugin not available */ }
+  } catch { /* plugin absent — fall through */ }
 
-  // Tier 3: Web Speech API
-  await speakWebSpeech(text, rate, pitch);
+  // Tier 2 — Web Speech API
+  await new Promise<void>(resolve => {
+    if (!('speechSynthesis' in window)) { resolve(); return; }
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.rate = rate; utt.pitch = pitch; utt.volume = 1;
+    utt.onend  = () => resolve();
+    utt.onerror = () => resolve();
+
+    const trySpeak = () => {
+      const v = bestWebVoice();
+      if (v) utt.voice = v;
+      window.speechSynthesis.speak(utt);
+    };
+
+    // voices load asynchronously on first call on some platforms
+    if (window.speechSynthesis.getVoices().length > 0) {
+      trySpeak();
+    } else {
+      window.speechSynthesis.addEventListener('voiceschanged', trySpeak, { once: true });
+    }
+  });
 }
 
-/** Stop whatever is currently playing. */
 export async function stopSpeaking(): Promise<void> {
-  if (_currentAudio) { _currentAudio.pause(); _currentAudio = null; }
   try {
     const { TextToSpeech } = await import('@capacitor-community/text-to-speech');
     await TextToSpeech.stop();
