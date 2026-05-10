@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { authenticateBiometricDetailed } from '../utils/biometric';
 import { verifyPin } from '../utils/pin';
 
-// ── Lock Screen ────────────────────────────────────────────────────────────────
 function LockScreen({ method, onUnlocked }: { method: 'biometric' | 'pin'; onUnlocked: () => void }) {
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState('');

@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
-// ── Forest Visual ──────────────────────────────────────────────────────────────
 export function getForestStage(soberDate: string): number {
   if (!soberDate) return 0;
   const hours = Math.max(0, (Date.now() - new Date(soberDate).getTime()) / 3600000);

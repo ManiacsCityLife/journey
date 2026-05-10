@@ -1,5 +1,4 @@
-// All currencies the savings tracker can display. Symbol is what we show in
-// the UI; code is the ISO 4217 identifier kept for backups & migrations.
+// `sym` is shown in the UI, `code` is ISO 4217 (kept for backups).
 export const CURRENCIES: { sym: string; code: string; name: string }[] = [
   { sym: '$',    code: 'USD', name: 'US Dollar' },
   { sym: '€',    code: 'EUR', name: 'Euro' },

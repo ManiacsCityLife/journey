@@ -1,10 +1,5 @@
-// In-app Privacy Policy.
-//
-// This is a copy of the policy that should also be hosted at a public URL
-// for the Play Store listing. Keeping a copy in-app means users can read it
-// without internet, which fits the app's offline-first promise.
-//
-// If you change anything here, update the hosted version too.
+// Mirror of PRIVACY.md at the repo root — keep both in sync when editing.
+
 import { IconShieldLock } from './Icons';
 
 interface Props { onBack: () => void }

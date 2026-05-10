@@ -55,5 +55,3 @@ export async function storageClear(): Promise<void> {
     console.error('[storage] storageClear() failed:', e);
   }
 }
-
-export function migrateFromLocalStorage(): void {}

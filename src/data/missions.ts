@@ -1,6 +1,5 @@
-// ── 50 Daily Missions ─────────────────────────────────────────────────────────
-// Each mission is tagged with a calm-icon category instead of a colourful
-// emoji — keeps the visual language quiet and consistent.
+// Each mission is tagged with an icon category instead of an emoji — keeps
+// the visual language consistent across the app.
 export type MissionCat =
   | 'walk' | 'connect' | 'read' | 'water' | 'breathe' | 'write' | 'meal'
   | 'sleep' | 'move' | 'tidy' | 'sun' | 'music' | 'book' | 'create'

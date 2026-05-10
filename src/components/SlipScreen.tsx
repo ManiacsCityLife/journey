@@ -1,14 +1,6 @@
-// SlipScreen — record a drinking slip without erasing the user's data.
-//
-// Design intent (the most important file in the app):
-//   • Slips are a part of recovery, not a moral failure. Copy is gentle,
-//     never accusatory. We avoid words like "relapse", "failed", "broke",
-//     "ruined".
-//   • Previous streaks become part of the user's story (best-streak +
-//     lifetime sober-days), not a deletion.
-//   • The flow is short enough that a person in distress can complete it.
-//   • Reflection prompts are optional — users can skip them.
-//   • The final confirm is unambiguous so nothing is logged by accident.
+// Records a slip without erasing the user's previous progress.
+// Copy stays gentle — no "relapse" / "failed" / "broke". Reflection
+// prompts are optional.
 
 import { useState } from 'react';
 import { IconChevron, IconHeart, IconBookmark } from './Icons';

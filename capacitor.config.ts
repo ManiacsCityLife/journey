@@ -1,16 +1,10 @@
 import type { CapacitorConfig } from '@capacitor/cli';
+
 const config: CapacitorConfig = {
   appId: 'com.journeyforward.app',
   appName: 'Journey Forward',
   webDir: 'dist',
-  server: {
-    androidScheme: 'https'
-  },
-  android: {
-    buildOptions: {
-      keystorePath: undefined,
-    }
-  },
+  server: { androidScheme: 'https' },
   plugins: {
     LocalNotifications: {
       smallIcon: 'ic_stat_icon',
@@ -19,4 +13,5 @@ const config: CapacitorConfig = {
     },
   },
 };
+
 export default config;

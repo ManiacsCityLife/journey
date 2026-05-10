@@ -1,12 +1,6 @@
-// Crisis Lines & Safety Information
-//
-// Design choices:
-//  - Phone numbers use <a href="tel:…"> — dialling doesn't transmit data, it's
-//    safety-critical, and one tap is the right UX in a crisis.
-//  - Website URLs are copy-only (same policy as RecoveryGroupsScreen) to
-//    preserve referrer privacy.
-//  - Content is organised by region with collapsible headers so the list
-//    stays readable without scrolling past irrelevant entries.
+// Crisis lines, region-grouped. Phone numbers are tap-to-dial; website URLs
+// are copy-only (same as RecoveryGroupsScreen) to avoid leaking referrers.
+
 import { useState } from 'react';
 import { IconCopy, IconChevron, IconPhone, IconShield } from './Icons';
 

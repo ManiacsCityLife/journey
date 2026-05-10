@@ -1,9 +1,6 @@
-// Recovery Groups directory.
-//
-// Privacy note: this is a local-only directory. No links are *clickable* —
-// users must consciously copy a URL and paste it into their browser. This
-// matches the rest of the app's policy of never silently opening external
-// resources or leaking referrers.
+// Local directory of recovery groups. URLs are copy-only — users paste them
+// into their browser themselves so the app never opens external resources.
+
 import { useState } from 'react';
 import { IconCopy, IconChevron } from './Icons';
 

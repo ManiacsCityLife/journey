@@ -6,7 +6,6 @@ import {
 } from './Icons';
 import type { MissionCat } from '../data/missions';
 
-// ── Mission category → calm icon ───────────────────────────────────────────
 function MissionIcon({ cat, size = 18, color = '#0d9488' }: { cat: MissionCat | string; size?: number; color?: string }) {
   const c = (cat as MissionCat);
   const props = { size, color };

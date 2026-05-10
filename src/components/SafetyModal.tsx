@@ -1,9 +1,7 @@
 import { IconShield, IconPhone } from './Icons';
 
-// ── Safety Modal (first launch) ───────────────────────────────────────────────
-// Shown once — on the first time the main app renders after onboarding — to
-// flag the medical danger of sudden alcohol withdrawal and give quick access
-// to crisis lines.  A 'safetyDismissed' key is persisted so it never repeats.
+// First-launch sheet: flags withdrawal danger + key crisis numbers.
+// Dismissed once and remembered (`safetyDismissed` in storage).
 function SafetyModal({ onDismiss, onViewLines }: { onDismiss: () => void; onViewLines: () => void }) {
   const quickLines = [
     { flag: '🌐 US', number: '988', tel: '988' },

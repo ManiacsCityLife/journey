@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useAppData } from './hooks/useAppData';
 import { scheduleAll, fireMilestone, fireSavingsMilestone, requestPermission } from './utils/notifications';
 import { authenticateBiometric, authenticateBiometricDetailed, getBiometricCapability, type BiometricCapability } from './utils/biometric';
@@ -22,15 +22,19 @@ import ForestVisual from './components/ForestVisual';
 import MissionIcon from './components/MissionIcon';
 import LockScreen from './components/LockScreen';
 import SafetyModal from './components/SafetyModal';
-import { QUOTES, getDailyQuote } from './data/quotes';
+import { getDailyQuote } from './data/quotes';
 import { MISSION_POOL, type MissionCat } from './data/missions';
 import { CURRENCIES } from './data/currencies';
 import type { Screen, UserProfile } from './types';
 import './index.css';
-import { IconHome, IconProgress, IconHeart, IconJournal, IconProfile, IconShield, IconWind, IconLeaf, IconBrain, IconWave, IconChat, IconRun, IconMoon, IconMilestone, IconBody, IconPuzzle, IconCompass, IconCloud, IconTimer, IconPhone, IconTarget, IconChevron, IconHistory, IconGratitude,
-  IconReset,
-  // Calm icon set
-  IconWalk, IconCup, IconSun, IconBook, IconNote, IconSeedling, IconTeapot, IconBath, IconClean, IconBalance, IconSparkles, IconHands, IconPalette, IconGarden, IconBookmark, IconCalendar, IconHourglass, IconFootprint, IconWaveHand, IconBubble, IconLaughter, IconLight, IconBell, IconTea, IconAffirm, IconShieldLock, IconWifiOff, IconLock, IconKey, IconCopy
+import {
+  IconHome, IconProgress, IconHeart, IconJournal, IconProfile, IconShield,
+  IconWind, IconLeaf, IconBrain, IconWave, IconChat, IconRun, IconMoon,
+  IconMilestone, IconBody, IconPuzzle, IconCompass, IconCloud, IconTimer,
+  IconPhone, IconTarget, IconChevron, IconHistory, IconGratitude, IconReset,
+  IconWalk, IconNote, IconSeedling, IconBalance, IconSparkles, IconHands,
+  IconBookmark, IconCalendar, IconBell, IconShieldLock, IconWifiOff,
+  IconLock, IconKey,
 } from './components/Icons';
 
 // ── Onboarding (multi-step) ────────────────────────────────────────────────────
@@ -1245,7 +1249,7 @@ function MyMotivation({ onBack, saveReasons: _saveReasons, initialReasons }: {
         } catch {}
       }
     })();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   // Reasons use the shared 'reasons' key via the saveReasons callback
   function addReason() {
@@ -2019,11 +2023,8 @@ export default function App() {
     });
   }, [data.profile, data.reasons]);
 
-  // Fire milestone notifications when a tier is freshly crossed.
-  //
-  // Critical: we *persist* which tiers we've already fired so the same
-  // notification doesn't re-fire on every cold app launch (which used to
-  // produce the "you've saved R50!" repeat on every open).
+  // Fire a milestone notification when a tier is freshly crossed. We persist
+  // which tiers have fired so they don't re-fire on every cold launch.
   useEffect(() => {
     if (!data.loaded || !data.profile) return;
     if (!data.profile.notificationSettings?.milestones) return;

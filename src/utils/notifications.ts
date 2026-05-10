@@ -1,13 +1,9 @@
 import type { UserProfile } from '../types';
 
-// ── Notification IDs ────────────────────────────────────────────────────────
-// 1    = morning motivation
-// 2    = evening motivation
-// 3    = morning reminder
-// 4    = evening reminder
-// 500+ = time milestones  (500 + days, e.g. 507 = 7-day)
-// 600+ = savings milestones (600 + tier index, e.g. 600 = R50, 607 = R10000)
-
+// Notification ID space:
+//   1–4    = scheduled motivations / reminders
+//   500+   = day milestones (500 + days)
+//   600+   = savings milestones (600 + tier index)
 const MILESTONE_DAYS = [1, 7, 14, 30, 60, 90, 180, 365, 730, 1095];
 const SAVINGS_TIERS  = [50, 100, 250, 500, 1000, 2500, 5000, 10000];
 
@@ -67,15 +63,8 @@ function addMinutes(t: { hour: number; minute: number }, mins: number): { hour: 
   return { hour: Math.floor(total / 60) % 24, minute: total % 60 };
 }
 
-/**
- * Deterministic pick — picks the same item on the same day regardless of
- * how many times scheduleAll() runs. Without this, opening the app twice on
- * the same day would re-roll tomorrow's notification text, which feels random
- * and jittery to users.
- *
- * `offset` lets us pick a *different* deterministic item for evening vs.
- * morning notifications on the same day.
- */
+// Same item on the same day, regardless of how many times scheduleAll runs.
+// Otherwise opening the app twice would re-roll tomorrow's notification text.
 function pickByDay<T>(arr: T[], offset = 0): T {
   if (!arr.length) return '' as unknown as T;
   const day = Math.floor(Date.now() / 86400000);
@@ -93,20 +82,13 @@ export async function requestPermission(): Promise<boolean> {
   }
 }
 
-/**
- * Resolve the effective frequency given a possibly-'auto' setting.
- *
- * Recovery research is consistent: the first month of sobriety is the hardest
- * and the best moment for support cues. After the routine is established,
- * frequent reminders become noise. So:
- *
- *   • Days  0– 30 → 'gentle'  (2× per day)
- *   • Days 31– 90 → 'light'   (1× per day, morning only)
- *   • Days 91+   → 'minimal'  (1× every 3 days, morning only)
- */
+// 'auto' decays the cadence as the user's streak grows: the first month is
+// when daily nudges help most; later they become noise.
+//   0–30 days  → gentle   (2/day)
+//   31–90      → light    (1/day, morning only)
+//   91+        → minimal  (1 every 3 days, morning only)
 export function effectiveFrequency(setting: string | undefined, soberDays: number): 'gentle' | 'light' | 'minimal' {
   if (setting === 'gentle' || setting === 'light' || setting === 'minimal') return setting;
-  // 'auto' or undefined → derive from sober days
   if (soberDays < 30) return 'gentle';
   if (soberDays < 90) return 'light';
   return 'minimal';
@@ -135,10 +117,8 @@ export async function scheduleAll(profile: UserProfile, motivations: string[]): 
 
     const freq = effectiveFrequency(settings.frequency, daysSince(profile.soberDate));
 
-    // 'minimal' wakes every 3rd day. Local Notifications doesn't support a
-    // built-in "every 3 days" schedule, so we schedule a one-shot 3 days out
-    // and re-arm it on every app launch (which is when scheduleAll runs).
-    const minimalMs = 3 * 86400000;
+    // 'minimal' = every 3 days. Local Notifications has no native repeat for
+    // this, so we schedule a one-shot 3 days out and re-arm on every launch.
     const nextMinimal = (h: number, m: number) => {
       const d = new Date();
       d.setDate(d.getDate() + 3);
@@ -146,7 +126,6 @@ export async function scheduleAll(profile: UserProfile, motivations: string[]): 
       return d;
     };
 
-    // ── Motivations ──
     if (settings.motivations && motivations.length > 0) {
       const morningMot = pickByDay(motivations, 0);
       const eveningMot = pickByDay(motivations, Math.max(1, Math.floor(motivations.length / 2)));
@@ -180,10 +159,9 @@ export async function scheduleAll(profile: UserProfile, motivations: string[]): 
           });
         }
       }
-      void minimalMs; // documentation only
     }
 
-    // ── Reminders ── (offset by 5 minutes to avoid collision with motivations)
+    // Offset reminders by 5 minutes so they don't collide with motivations
     if (settings.reminders) {
       const morningR = addMinutes(morning, 5);
       const eveningR = addMinutes(evening, 5);

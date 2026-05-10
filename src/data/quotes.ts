@@ -1,4 +1,3 @@
-// ── 60 Quotes ─────────────────────────────────────────────────────────────────
 export const QUOTES = [
   "Every day sober is a victory worth celebrating.",
   "You are not giving something up. You are gaining everything.",

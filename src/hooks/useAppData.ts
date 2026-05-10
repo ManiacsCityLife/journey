@@ -126,14 +126,9 @@ export function useAppData() {
     storageSet('affirmationFavs', JSON.stringify(favs));
   }, []);
 
-  /**
-   * Record a slip — preserves all journal/log data, snapshots the previous
-   * streak as part of the user's recovery story, and resets only the sober
-   * date counter so the user can start counting again from this moment.
-   *
-   * Also clears `firedMilestoneDays` and `firedSavingsTiers` so milestone
-   * notifications fire again on the new streak (1 day, 7 days, etc.).
-   */
+  // Snapshots the previous streak into the slip log, then resets only the
+  // sober date. Other data (journal, gratitude, etc.) is preserved.
+  // Clears the fired-milestone trackers so they re-fire on the new streak.
   const recordSlip = useCallback(async (data: {
     timestamp: string;
     trigger?: string;
@@ -189,11 +184,7 @@ export function useAppData() {
     storageSet('slips', JSON.stringify(next));
   }, []);
 
-  /**
-   * Composed recovery stats: current streak + previous streaks + lifetime
-   * total. Best streak treats "current" as a candidate too — if you're now
-   * past your previous best, that should be reflected.
-   */
+  // Best streak includes the current one as a candidate.
   const getRecoveryStats = useCallback(() => {
     const stats = profile?.soberDate
       ? Math.max(0, Math.floor((Date.now() - new Date(profile.soberDate).getTime()) / 86400000))
