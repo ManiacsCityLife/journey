@@ -3,7 +3,6 @@ import { useAppData } from './hooks/useAppData';
 import { scheduleAll, fireMilestone, fireSavingsMilestone, requestPermission } from './utils/notifications';
 import { authenticateBiometric, authenticateBiometricDetailed, getBiometricCapability, type BiometricCapability } from './utils/biometric';
 import { setPin as savePin, verifyPin, clearPin } from './utils/pin';
-import SoberBuddyChat from './components/SoberBuddyChat';
 import EmergencyKit from './components/EmergencyKit';
 import Heatmap from './components/Heatmap';
 import BackupScreen from './components/BackupScreen';
@@ -1867,6 +1866,134 @@ function SecuritySection({ profile, setProfile, saveProfile }: {
   );
 }
 
+// ── ElevenLabs Voice Card ─────────────────────────────────────────────────
+// Self-contained — reads/writes the 'elevenLabsKey' and 'elevenLabsVoice'
+// storage keys directly (no prop threading needed).
+function ElevenLabsCard() {
+  const [key, setKey] = useState('');
+  const [savedKey, setSavedKey] = useState<string | null>(null);
+  const [voice, setVoice] = useState('21m00Tcm4TlvDq8ikWAM');
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState('');
+
+  useEffect(() => {
+    (async () => {
+      const { storageGet } = await import('./utils/storage');
+      const k = await storageGet('elevenLabsKey');
+      const v = await storageGet('elevenLabsVoice');
+      if (k) { setSavedKey(k); setKey(k); }
+      if (v) setVoice(v);
+    })();
+  }, []);
+
+  async function save() {
+    if (!key.trim()) return;
+    setSaving(true);
+    const { storageSet } = await import('./utils/storage');
+    const { clearTTSCache } = await import('./utils/tts');
+    await storageSet('elevenLabsKey', key.trim());
+    await storageSet('elevenLabsVoice', voice);
+    clearTTSCache();
+    setSavedKey(key.trim());
+    setSaving(false);
+    setStatus('Saved!');
+    window.setTimeout(() => setStatus(''), 2000);
+  }
+
+  async function clear() {
+    const { storageRemove } = await import('./utils/storage');
+    const { clearTTSCache } = await import('./utils/tts');
+    await storageRemove('elevenLabsKey');
+    await storageRemove('elevenLabsVoice');
+    clearTTSCache();
+    setSavedKey(null);
+    setKey('');
+    setVoice('21m00Tcm4TlvDq8ikWAM');
+  }
+
+  const VOICES = [
+    { id: '21m00Tcm4TlvDq8ikWAM', name: 'Rachel  —  warm & clear (recommended)' },
+    { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Bella  —  soft & soothing' },
+    { id: 'AZnzlk1XvdvUeBnXmlld', name: 'Domi  —  strong & confident' },
+    { id: 'ErXwobaYiN019PkySvjV', name: 'Antoni  —  calm male' },
+    { id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam  —  deep male' },
+    { id: 'TxGEqnHWrfWFTfGW9XjX', name: 'Josh  —  warm male' },
+  ];
+
+  return (
+    <section className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <button onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center px-5 py-4 text-left gap-3">
+        <div className="w-9 h-9 rounded-full bg-violet-50 flex items-center justify-center flex-shrink-0">
+          <IconNote size={18} color="#7c3aed"/>
+        </div>
+        <div className="flex-1">
+          <div className="font-semibold text-slate-800 text-sm">Voice & TTS</div>
+          <div className="text-slate-500 text-xs">
+            {savedKey ? 'ElevenLabs active — human-quality voice' : 'Using device voice (robotic on most phones)'}
+          </div>
+        </div>
+        <div className={`text-slate-400 transition-transform ${open ? 'rotate-90' : ''}`}>
+          <IconChevron size={18} color="#94a3b8"/>
+        </div>
+      </button>
+
+      {open && (
+        <div className="border-t border-slate-50 px-5 pb-5 space-y-4">
+          {/* Current status */}
+          <div className={`rounded-xl p-3 text-xs leading-relaxed ${savedKey ? 'bg-emerald-50 border border-emerald-100 text-emerald-800' : 'bg-slate-50 border border-slate-200 text-slate-600'}`}>
+            {savedKey
+              ? <>✓ ElevenLabs key active. Affirmations and TTS will use your chosen voice. <strong>Internet required for playback.</strong></>
+              : 'No ElevenLabs key set. The app uses your phone\'s built-in voice, which sounds robotic on most devices.'}
+          </div>
+
+          {/* Privacy notice */}
+          <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 text-xs text-amber-800 leading-relaxed">
+            <strong>Privacy note:</strong> ElevenLabs is an external service. When you play affirmations or journal prompts, the text is sent to ElevenLabs' servers using your key. If you prefer fully offline, leave this blank.
+          </div>
+
+          {/* Voice picker */}
+          <div>
+            <label className="text-slate-500 text-xs font-medium block mb-1.5">Voice</label>
+            <select value={voice} onChange={e => setVoice(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-3 py-3 text-sm outline-none focus:ring-1 focus:ring-violet-500">
+              {VOICES.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+            </select>
+          </div>
+
+          {/* API key input */}
+          <div>
+            <label className="text-slate-500 text-xs font-medium block mb-1.5">
+              ElevenLabs API key
+              <span className="ml-1 text-slate-400">(get yours free at elevenlabs.io)</span>
+            </label>
+            <input
+              type="password" autoComplete="off"
+              value={key}
+              onChange={e => setKey(e.target.value)}
+              placeholder="sk-..."
+              className="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 rounded-xl px-3 py-3 text-sm outline-none focus:ring-1 focus:ring-violet-500 font-mono"/>
+          </div>
+
+          <div className="flex gap-2">
+            <button onClick={save} disabled={!key.trim() || saving}
+              className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-colors ${status ? 'bg-emerald-500 text-white' : 'bg-violet-600 text-white disabled:bg-slate-200 disabled:text-slate-400'}`}>
+              {status || (saving ? 'Saving…' : 'Save key')}
+            </button>
+            {savedKey && (
+              <button onClick={clear}
+                className="px-4 py-3 rounded-xl text-sm font-semibold bg-rose-50 text-rose-600 border border-rose-200">
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 // ── Recovery Section (Profile) ─────────────────────────────────────────────
 // Shows the user's full recovery story (current streak, best ever, lifetime
 // total, slips logged) and provides the entry points for recording a slip
@@ -2213,6 +2340,9 @@ function ProfileScreen({ data, onNavigate }: { data: ReturnType<typeof useAppDat
           ))}
         </section>
 
+        {/* Voice Settings */}
+        <ElevenLabsCard/>
+
         {/* Danger Zone */}
         <div className="mt-4 pt-6 border-t border-gray-200">
           <h3 className="text-xs font-bold text-center text-slate-400 uppercase tracking-wider mb-3">Danger Zone</h3>
@@ -2260,7 +2390,6 @@ function ProfileScreen({ data, onNavigate }: { data: ReturnType<typeof useAppDat
 const NAV = [
   {key:'home',icon:'home',label:'Home'},
   {key:'progress',icon:'progress',label:'Progress'},
-  {key:'buddy',icon:'buddy',label:'Buddy'},
   {key:'journal',icon:'journal',label:'Journal'},
   {key:'settings',icon:'profile',label:'Profile'},
 ] as const;
@@ -2666,7 +2795,6 @@ export default function App() {
           saveAffirmationFavs={data.saveAffirmationFavs}
           soberDays={stats?.days || 0}
         />}
-        {screen==='buddy' && <div className="h-full flex flex-col"><SoberBuddyChat profile={data.profile} soberDays={stats?.days||0}/></div>}
         {screen==='settings' && <ProfileScreen data={data} onNavigate={navigate as any}/>}
       </div>
       <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/95 backdrop-blur border-t border-slate-100 z-40"
@@ -2677,7 +2805,6 @@ export default function App() {
               className={`flex-1 flex flex-col items-center py-3 gap-1 transition-colors ${screen===item.key?'text-teal-500':'text-slate-400'}`}>
               {item.key==='home' && <IconHome size={22} color={screen===item.key?'#0d9488':'#94a3b8'}/>}
               {item.key==='progress' && <IconProgress size={22} color={screen===item.key?'#0d9488':'#94a3b8'}/>}
-              {item.key==='buddy' && <IconHeart size={22} color={screen===item.key?'#0d9488':'#94a3b8'}/>}
               {item.key==='journal' && <IconJournal size={22} color={screen===item.key?'#0d9488':'#94a3b8'}/>}
               {item.key==='settings' && <IconProfile size={22} color={screen===item.key?'#0d9488':'#94a3b8'}/>}
               <span className="text-xs font-medium">{item.label}</span>

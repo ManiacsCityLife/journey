@@ -143,7 +143,7 @@ export interface AffirmationFavorite {
 }
 
 export type Screen =
-  | 'home' | 'progress' | 'emergency' | 'journal' | 'buddy'
+  | 'home' | 'progress' | 'emergency' | 'journal'
   | 'heatmap' | 'settings' | 'backup' | 'milestone'
   | 'recovery' | 'insights' | 'puzzle' | 'cbt' | 'history' | 'groups'
   | 'slip' | 'sliplog' | 'crisis';
